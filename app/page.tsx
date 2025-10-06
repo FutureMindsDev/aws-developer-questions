@@ -3,38 +3,55 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { QuestionCard } from "@/components/question-card"
+import { Pagination } from "@/components/pagination"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useAuth } from "@/components/auth-provider"
 import { LogOut, Search, Shield } from "lucide-react"
-import type { Question } from "@/lib/types"
+import type { Question, PaginatedResponse } from "@/lib/types"
 
 export default function HomePage() {
-  const [questions, setQuestions] = React.useState<Question[]>([])
+  const [paginatedData, setPaginatedData] = React.useState<PaginatedResponse<Question>>({
+    data: [],
+    total: 0,
+    page: 1,
+    limit: 10,
+    totalPages: 0,
+  })
   const [searchQuery, setSearchQuery] = React.useState("")
+  const [currentPage, setCurrentPage] = React.useState(1)
   const [loading, setLoading] = React.useState(true)
   const { isAuthenticated, isAdmin, logout } = useAuth()
   const router = useRouter()
 
-  React.useEffect(() => {
-    async function fetchQuestions() {
-      try {
-        const response = await fetch("/api/questions")
-        if (response.ok) {
-          const data = await response.json()
-          setQuestions(data)
-        }
-      } catch (error) {
-        console.error("[v0] Error fetching questions:", error)
-      } finally {
-        setLoading(false)
+  const fetchQuestions = React.useCallback(async (page: number) => {
+    setLoading(true)
+    try {
+      const response = await fetch(`/api/questions?page=${page}&limit=10`)
+      if (response.ok) {
+        const data = await response.json()
+        setPaginatedData(data)
       }
+    } catch (error) {
+      console.error("[v0] Error fetching questions:", error)
+    } finally {
+      setLoading(false)
     }
-    fetchQuestions()
   }, [])
 
-  const filteredQuestions = questions.filter((q) => q.question.toLowerCase().includes(searchQuery.toLowerCase()))
+  React.useEffect(() => {
+    fetchQuestions(currentPage)
+  }, [currentPage, fetchQuestions])
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }
+
+  const filteredQuestions = paginatedData.data.filter((q) =>
+    q.question.toLowerCase().includes(searchQuery.toLowerCase()),
+  )
 
   return (
     <div className="min-h-screen bg-background">
@@ -76,7 +93,7 @@ export default function HomePage() {
               className="pl-9"
             />
           </div>
-          <div className="text-sm text-muted-foreground">{filteredQuestions.length} questions</div>
+          <div className="text-sm text-muted-foreground">{paginatedData.total} questions</div>
         </div>
 
         <div className="space-y-4">
@@ -88,10 +105,20 @@ export default function HomePage() {
             </div>
           ) : (
             filteredQuestions.map((question, index) => (
-              <QuestionCard key={question.id} question={question} index={index} />
+              <QuestionCard key={question.id} question={question} index={(currentPage - 1) * 10 + index} />
             ))
           )}
         </div>
+
+        {!loading && paginatedData.totalPages > 1 && (
+          <div className="mt-8">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={paginatedData.totalPages}
+              onPageChange={handlePageChange}
+            />
+          </div>
+        )}
       </main>
     </div>
   )
