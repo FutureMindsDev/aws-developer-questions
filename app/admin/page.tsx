@@ -8,14 +8,24 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { Pagination } from "@/components/pagination"
 import { useAuth } from "@/components/auth-provider"
-import type { Question } from "@/lib/types"
+import type { Question, PaginatedResponse } from "@/lib/types"
 import { Plus, Pencil, Trash2, Home, LogOut, X, Check } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
+import { parseTextWithCode } from "@/lib/utils"
 
 export default function AdminPage() {
-  const [questions, setQuestions] = React.useState<Question[]>([])
+  const [paginatedData, setPaginatedData] = React.useState<PaginatedResponse<Question>>({
+    data: [],
+    total: 0,
+    page: 1,
+    limit: 10,
+    totalPages: 0,
+  })
+  const [currentPage, setCurrentPage] = React.useState(1)
   const [editingId, setEditingId] = React.useState<string | null>(null)
+  const [showCodeHelper, setShowCodeHelper] = React.useState(false)
   const [formData, setFormData] = React.useState({
     question: "",
     options: ["", "", "", ""],
@@ -25,12 +35,12 @@ export default function AdminPage() {
   const { isAdmin, logout, password } = useAuth()
   const router = useRouter()
 
-  const fetchQuestions = React.useCallback(async () => {
+  const fetchQuestions = React.useCallback(async (page: number) => {
     try {
-      const response = await fetch("/api/questions")
+      const response = await fetch(`/api/questions?page=${page}&limit=10`)
       if (response.ok) {
         const data = await response.json()
-        setQuestions(data)
+        setPaginatedData(data)
       }
     } catch (error) {
       console.error("[v0] Error fetching questions:", error)
@@ -43,8 +53,13 @@ export default function AdminPage() {
       router.push("/login")
       return
     }
-    fetchQuestions()
-  }, [isAdmin, router, fetchQuestions])
+    fetchQuestions(currentPage)
+  }, [isAdmin, router, currentPage, fetchQuestions])
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -77,7 +92,7 @@ export default function AdminPage() {
         answer: "",
         explanation: "",
       })
-      fetchQuestions()
+      fetchQuestions(currentPage)
     } catch (error) {
       console.error("[v0] Error submitting question:", error)
       toast({ title: "Failed to save question", variant: "destructive" })
@@ -106,7 +121,7 @@ export default function AdminPage() {
 
         if (!response.ok) throw new Error("Failed to delete question")
         toast({ title: "Question deleted successfully" })
-        fetchQuestions()
+        fetchQuestions(currentPage)
       } catch (error) {
         console.error("[v0] Error deleting question:", error)
         toast({ title: "Failed to delete question", variant: "destructive" })
@@ -116,12 +131,19 @@ export default function AdminPage() {
 
   const handleCancel = () => {
     setEditingId(null)
+    setShowCodeHelper(false)
     setFormData({
       question: "",
       options: ["", "", "", ""],
       answer: "",
       explanation: "",
     })
+  }
+
+  const insertCodeTags = (fieldName: keyof typeof formData, value: string) => {
+    if (fieldName === "options") return
+    const wrappedValue = formData[fieldName] + `<code>${value}</code>`
+    setFormData({ ...formData, [fieldName]: wrappedValue })
   }
 
   if (!isAdmin) return null
@@ -175,7 +197,7 @@ export default function AdminPage() {
               <div className="space-y-2">
                 <Label>Options</Label>
                 {formData.options.map((option, idx) => (
-                  <Input
+                  <Textarea
                     key={idx}
                     placeholder={`Option ${String.fromCharCode(65 + idx)}`}
                     value={option}
@@ -184,7 +206,7 @@ export default function AdminPage() {
                       newOptions[idx] = e.target.value
                       setFormData({ ...formData, options: newOptions })
                     }}
-                    className="font-mono text-sm"
+                    className="font-mono text-sm min-h-[60px]"
                     required
                   />
                 ))}
@@ -209,7 +231,7 @@ export default function AdminPage() {
                   placeholder="Explain the answer..."
                   value={formData.explanation}
                   onChange={(e) => setFormData({ ...formData, explanation: e.target.value })}
-                  className="min-h-[100px] text-sm"
+                  className="min-h-[100px] text-sm font-mono"
                 />
               </div>
 
@@ -231,20 +253,20 @@ export default function AdminPage() {
         </Card>
 
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold">All Questions ({questions.length})</h2>
-          {questions.length === 0 ? (
+          <h2 className="text-xl font-semibold">All Questions ({paginatedData.total})</h2>
+          {paginatedData.data.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center text-muted-foreground">
                 No questions yet. Add your first question above.
               </CardContent>
             </Card>
           ) : (
-            questions.map((question, index) => (
+            paginatedData.data.map((question, index) => (
               <Card key={question.id}>
                 <CardHeader>
                   <CardTitle className="text-base font-semibold leading-relaxed flex items-start justify-between">
                     <span>
-                      {index + 1}. {question.question}
+                      {(currentPage - 1) * 10 + index + 1}. {parseTextWithCode(question.question)}
                     </span>
                     <div className="flex gap-2 ml-4">
                       <Button variant="ghost" size="icon" onClick={() => handleEdit(question)}>
@@ -259,7 +281,7 @@ export default function AdminPage() {
                 <CardContent className="space-y-2">
                   {question.options.map((option, idx) => (
                     <div key={idx} className="rounded-md bg-muted px-4 py-2 text-sm font-mono">
-                      {option}
+                      {parseTextWithCode(option)}
                     </div>
                   ))}
                   <div className="pt-2 text-sm">
@@ -271,6 +293,16 @@ export default function AdminPage() {
             ))
           )}
         </div>
+
+        {paginatedData.totalPages > 1 && (
+          <div className="mt-8">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={paginatedData.totalPages}
+              onPageChange={handlePageChange}
+            />
+          </div>
+        )}
       </main>
     </div>
   )

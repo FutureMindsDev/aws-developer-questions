@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ChevronDown, ChevronUp } from "lucide-react"
 import type { Question } from "@/lib/types"
+import { parseTextWithCode } from "@/lib/utils"
 
 interface QuestionCardProps {
   question: Question
@@ -18,14 +19,14 @@ export function QuestionCard({ question, index }: QuestionCardProps) {
     <Card className="border-border">
       <CardHeader>
         <CardTitle className="text-base font-semibold leading-relaxed">
-          {index + 1}. {question.question}
+          {index + 1}. {parseTextWithCode(question.question)}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
           {question.options.map((option, idx) => (
             <div key={idx} className="rounded-md bg-muted px-4 py-2 text-sm font-mono">
-              {option}
+              {parseTextWithCode(option)}
             </div>
           ))}
         </div>
@@ -47,7 +48,7 @@ export function QuestionCard({ question, index }: QuestionCardProps) {
             {question.explanation && (
               <>
                 <div className="font-semibold text-sm mt-3">Explanation:</div>
-                <div className="text-sm leading-relaxed">{question.explanation}</div>
+                <div className="text-sm leading-relaxed">{parseTextWithCode(question.explanation)}</div>
               </>
             )}
           </div>
