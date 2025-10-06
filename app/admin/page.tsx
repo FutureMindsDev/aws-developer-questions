@@ -25,6 +25,7 @@ export default function AdminPage() {
   })
   const [currentPage, setCurrentPage] = React.useState(1)
   const [editingId, setEditingId] = React.useState<string | null>(null)
+  const [showCodeHelper, setShowCodeHelper] = React.useState(false)
   const [formData, setFormData] = React.useState({
     question: "",
     options: ["", "", "", ""],
@@ -130,12 +131,19 @@ export default function AdminPage() {
 
   const handleCancel = () => {
     setEditingId(null)
+    setShowCodeHelper(false)
     setFormData({
       question: "",
       options: ["", "", "", ""],
       answer: "",
       explanation: "",
     })
+  }
+
+  const insertCodeTags = (fieldName: keyof typeof formData, value: string) => {
+    if (fieldName === "options") return
+    const wrappedValue = formData[fieldName] + `<code>${value}</code>`
+    setFormData({ ...formData, [fieldName]: wrappedValue })
   }
 
   if (!isAdmin) return null
@@ -173,12 +181,26 @@ export default function AdminPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
+            <div className="mb-4 p-4 bg-muted rounded-lg text-sm space-y-2">
+              <p className="font-semibold">Code Formatting Tips:</p>
+              <p>
+                To add code snippets, wrap them with{" "}
+                <code className="bg-background px-1 py-0.5 rounded">&lt;code&gt;...&lt;/code&gt;</code> tags.
+              </p>
+              <p className="text-muted-foreground">
+                Example: This is text{" "}
+                <code className="bg-background px-1 py-0.5 rounded">&lt;code&gt;const x = 5;&lt;/code&gt;</code> more
+                text
+              </p>
+              <p className="text-muted-foreground">For multiline code, use actual line breaks inside the code tags.</p>
+            </div>
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="question">Question</Label>
                 <Textarea
                   id="question"
-                  placeholder="Enter the question..."
+                  placeholder="Enter the question... Use <code>your code here</code> for code snippets"
                   value={formData.question}
                   onChange={(e) => setFormData({ ...formData, question: e.target.value })}
                   className="min-h-[100px] font-mono text-sm"
@@ -189,16 +211,16 @@ export default function AdminPage() {
               <div className="space-y-2">
                 <Label>Options</Label>
                 {formData.options.map((option, idx) => (
-                  <Input
+                  <Textarea
                     key={idx}
-                    placeholder={`Option ${String.fromCharCode(65 + idx)}`}
+                    placeholder={`Option ${String.fromCharCode(65 + idx)} - Use <code>...</code> for code`}
                     value={option}
                     onChange={(e) => {
                       const newOptions = [...formData.options]
                       newOptions[idx] = e.target.value
                       setFormData({ ...formData, options: newOptions })
                     }}
-                    className="font-mono text-sm"
+                    className="font-mono text-sm min-h-[60px]"
                     required
                   />
                 ))}
@@ -220,10 +242,10 @@ export default function AdminPage() {
                 <Label htmlFor="explanation">Explanation (Optional)</Label>
                 <Textarea
                   id="explanation"
-                  placeholder="Explain the answer..."
+                  placeholder="Explain the answer... Use <code>...</code> for code snippets"
                   value={formData.explanation}
                   onChange={(e) => setFormData({ ...formData, explanation: e.target.value })}
-                  className="min-h-[100px] text-sm"
+                  className="min-h-[100px] text-sm font-mono"
                 />
               </div>
 

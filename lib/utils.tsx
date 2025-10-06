@@ -8,12 +8,11 @@ export function cn(...inputs: ClassValue[]) {
 
 export function parseTextWithCode(text: string): React.ReactNode[] {
   const parts: React.ReactNode[] = []
-  const codeRegex = /<code>(.*?)<\/code>/gs // Added 's' flag for multiline support
+  const codeRegex = /<code>(.*?)<\/code>/gs
   let lastIndex = 0
   let match
   let keyCounter = 0
 
-  // Reset regex lastIndex to ensure it starts from beginning
   codeRegex.lastIndex = 0
 
   while ((match = codeRegex.exec(text)) !== null) {
@@ -24,10 +23,21 @@ export function parseTextWithCode(text: string): React.ReactNode[] {
         parts.push(<span key={`text-${keyCounter++}`}>{textBefore}</span>)
       }
     }
-    // Add code block
+
+    const codeContent = match[1]
+    const codeLines = codeContent.split("\n")
+
     parts.push(
-      <code key={`code-${keyCounter++}`} className="rounded bg-muted px-1.5 py-0.5 font-mono text-sm">
-        {match[1]}
+      <code
+        key={`code-${keyCounter++}`}
+        className="rounded bg-muted px-1.5 py-0.5 font-mono text-sm whitespace-pre-wrap block my-1"
+      >
+        {codeLines.map((line, idx) => (
+          <span key={idx}>
+            {line}
+            {idx < codeLines.length - 1 && "\n"}
+          </span>
+        ))}
       </code>,
     )
     lastIndex = match.index + match[0].length
