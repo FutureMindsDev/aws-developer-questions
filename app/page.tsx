@@ -25,10 +25,15 @@ export default function HomePage() {
   const { isAuthenticated, isAdmin, logout } = useAuth()
   const router = useRouter()
 
-  const fetchQuestions = React.useCallback(async (page: number) => {
+  const fetchQuestions = React.useCallback(async (page: number, search: string) => {
     setLoading(true)
     try {
-      const response = await fetch(`/api/questions?page=${page}&limit=10`)
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: "10",
+        ...(search && { search }),
+      })
+      const response = await fetch(`/api/questions?${params}`)
       if (response.ok) {
         const data = await response.json()
         setPaginatedData(data)
@@ -41,17 +46,24 @@ export default function HomePage() {
   }, [])
 
   React.useEffect(() => {
-    fetchQuestions(currentPage)
-  }, [currentPage, fetchQuestions])
+    const timer = setTimeout(() => {
+      setCurrentPage(1) // Reset to page 1 when searching
+      fetchQuestions(1, searchQuery)
+    }, 300)
+
+    return () => clearTimeout(timer)
+  }, [searchQuery, fetchQuestions])
+
+  React.useEffect(() => {
+    if (currentPage !== 1 || searchQuery === "") {
+      fetchQuestions(currentPage, searchQuery)
+    }
+  }, [currentPage])
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
     window.scrollTo({ top: 0, behavior: "smooth" })
   }
-
-  const filteredQuestions = paginatedData.data.filter((q) =>
-    q.question.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
 
   return (
     <div className="min-h-screen bg-background">
@@ -83,8 +95,8 @@ export default function HomePage() {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <div className="mb-6 flex items-center gap-2">
-          <div className="relative flex-1 max-w-md">
+        <div className="mb-6 space-y-3">
+          <div className="relative max-w-md">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search questions..."
@@ -93,18 +105,20 @@ export default function HomePage() {
               className="pl-9"
             />
           </div>
-          <div className="text-sm text-muted-foreground">{paginatedData.total} questions</div>
+          <div className="text-sm text-muted-foreground">
+            {loading ? "Loading..." : `${paginatedData.total} question${paginatedData.total !== 1 ? "s" : ""} found`}
+          </div>
         </div>
 
         <div className="space-y-4">
           {loading ? (
             <div className="text-center py-12 text-muted-foreground">Loading questions...</div>
-          ) : filteredQuestions.length === 0 ? (
+          ) : paginatedData.data.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               No questions found. {isAdmin && "Go to admin panel to add questions."}
             </div>
           ) : (
-            filteredQuestions.map((question, index) => (
+            paginatedData.data.map((question, index) => (
               <QuestionCard key={question.id} question={question} index={(currentPage - 1) * 10 + index} />
             ))
           )}

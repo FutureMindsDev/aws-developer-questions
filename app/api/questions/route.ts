@@ -7,19 +7,31 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
     const page = Number.parseInt(searchParams.get("page") || "1")
     const limit = Number.parseInt(searchParams.get("limit") || "10")
+    const search = searchParams.get("search") || ""
     const skip = (page - 1) * limit
 
     const db = await getDatabase()
 
+    const searchFilter = search
+      ? {
+          $or: [
+            { question: { $regex: search, $options: "i" } },
+            { options: { $elemMatch: { $regex: search, $options: "i" } } },
+            { answer: { $regex: search, $options: "i" } },
+            { explanation: { $regex: search, $options: "i" } },
+          ],
+        }
+      : {}
+
     const questions = await db
       .collection<Question>("questions")
-      .find({})
-      .sort({ createdAt: -1 })
+      .find(searchFilter)
+      .sort({ order: 1 })
       .skip(skip)
       .limit(limit)
       .toArray()
 
-    const total = await db.collection<Question>("questions").countDocuments()
+    const total = await db.collection<Question>("questions").countDocuments(searchFilter)
 
     return NextResponse.json({
       data: questions,
@@ -39,7 +51,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { question, options, answer, explanation, adminPassword } = body
 
-    // Verify admin password
     if (adminPassword !== process.env.NEXT_PUBLIC_ADMIN_PASSWORD) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }

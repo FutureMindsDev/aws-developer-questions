@@ -8,18 +8,25 @@ export function cn(...inputs: ClassValue[]) {
 
 export function parseTextWithCode(text: string): React.ReactNode[] {
   const parts: React.ReactNode[] = []
-  const codeRegex = /<code>(.*?)<\/code>/g
+  const codeRegex = /<code>(.*?)<\/code>/gs // Added 's' flag for multiline support
   let lastIndex = 0
   let match
+  let keyCounter = 0
+
+  // Reset regex lastIndex to ensure it starts from beginning
+  codeRegex.lastIndex = 0
 
   while ((match = codeRegex.exec(text)) !== null) {
     // Add text before code block
     if (match.index > lastIndex) {
-      parts.push(text.substring(lastIndex, match.index))
+      const textBefore = text.substring(lastIndex, match.index)
+      if (textBefore) {
+        parts.push(<span key={`text-${keyCounter++}`}>{textBefore}</span>)
+      }
     }
     // Add code block
     parts.push(
-      <code key={match.index} className="rounded bg-muted px-1.5 py-0.5 font-mono text-sm">
+      <code key={`code-${keyCounter++}`} className="rounded bg-muted px-1.5 py-0.5 font-mono text-sm">
         {match[1]}
       </code>,
     )
@@ -28,7 +35,10 @@ export function parseTextWithCode(text: string): React.ReactNode[] {
 
   // Add remaining text
   if (lastIndex < text.length) {
-    parts.push(text.substring(lastIndex))
+    const remainingText = text.substring(lastIndex)
+    if (remainingText) {
+      parts.push(<span key={`text-${keyCounter++}`}>{remainingText}</span>)
+    }
   }
 
   return parts.length > 0 ? parts : [text]
