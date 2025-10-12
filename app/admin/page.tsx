@@ -245,7 +245,11 @@ export default function AdminPage() {
                 </Button>
               )}
             </CardTitle>
-            {/* Use <code>your-code-here</code> tags to format code snippets in questions and explanations */}
+            <div className="mt-2 p-3 bg-muted rounded-md">
+              <p className="text-sm text-muted-foreground">
+                💡 <strong>Code formatting:</strong> Use <code className="bg-background px-1 py-0.5 rounded text-xs">&lt;code&gt;your-code-here&lt;/code&gt;</code> tags to format code snippets in questions and explanations.
+              </p>
+            </div>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">

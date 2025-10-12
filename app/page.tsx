@@ -51,21 +51,38 @@ export default function HomePage() {
   );
 
   React.useEffect(() => {
+    if (!isAuthenticated) {
+      router.push("/login");
+      return;
+    }
+  }, [isAuthenticated, router]);
+
+  React.useEffect(() => {
+    if (!isAuthenticated) {
+      return; // Don't fetch if not authenticated
+    }
     const timer = setTimeout(() => {
       setCurrentPage(1); // Reset to page 1 when searching
       fetchQuestions(1, searchQuery);
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [searchQuery, fetchQuestions]);
+  }, [searchQuery, fetchQuestions, isAuthenticated]);
 
   React.useEffect(() => {
+    if (!isAuthenticated) {
+      return; // Don't fetch if not authenticated
+    }
     if (currentPage !== 1 || searchQuery === "") {
       fetchQuestions(currentPage, searchQuery);
     }
-  }, [currentPage]);
+  }, [currentPage, isAuthenticated]);
 
   const handlePageChange = (page: number) => {
+    if (!isAuthenticated) {
+      router.push("/login");
+      return;
+    }
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -139,7 +156,7 @@ export default function HomePage() {
             </div>
           ) : (
             paginatedData.data.map((question, index) => (
-              <QuestionCard key={question.id} question={question} />
+              <QuestionCard key={index} question={question} />
             ))
           )}
         </div>

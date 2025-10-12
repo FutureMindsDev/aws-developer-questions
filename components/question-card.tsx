@@ -48,22 +48,29 @@ export function QuestionCard({ question }: QuestionCardProps) {
           )}
         </Button>
 
-        {showAnswer && (
-          <div className="space-y-2 rounded-md border border-border bg-accent p-4">
-            <div className="font-semibold text-sm">Answer:</div>
-            <div className="font-mono text-sm text-primary">
-              {question.answer}
-            </div>
-            {question.explanation && (
-              <>
-                <div className="font-semibold text-sm mt-3">Explanation:</div>
-                <div className="text-sm leading-relaxed">
-                  {parseTextWithCode(question.explanation)}
-                </div>
-              </>
-            )}
+        <div
+          className={`space-y-2 rounded-md border border-border bg-accent p-4 transition-all duration-300 ease-out ${
+            showAnswer
+              ? "animate-in slide-in-from-top-2 opacity-100 max-h-96"
+              : "animate-out fade-out-0 slide-out-to-top-2 opacity-0 max-h-0 overflow-hidden"
+          }`}
+          style={{
+            animationFillMode: showAnswer ? 'forwards' : 'backwards'
+          }}
+        >
+          <div className="font-semibold text-sm">Answer:</div>
+          <div className="font-mono text-sm text-primary">
+            {question.answer}
           </div>
-        )}
+          {question.explanation && (
+            <>
+              <div className="font-semibold text-sm mt-3">Explanation:</div>
+              <div className="text-sm leading-relaxed">
+                {parseTextWithCode(question.explanation)}
+              </div>
+            </>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
