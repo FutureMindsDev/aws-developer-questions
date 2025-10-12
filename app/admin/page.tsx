@@ -1,68 +1,70 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { useRouter } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { Pagination } from "@/components/pagination"
-import { useAuth } from "@/components/auth-provider"
-import type { Question, PaginatedResponse } from "@/lib/types"
-import { Plus, Pencil, Trash2, Home, LogOut, X, Check } from "lucide-react"
-import { toast } from "@/hooks/use-toast"
-import { parseTextWithCode } from "@/lib/utils"
+import * as React from "react";
+import { useRouter } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { Pagination } from "@/components/pagination";
+import { useAuth } from "@/components/auth-provider";
+import type { Question, PaginatedResponse } from "@/lib/types";
+import { Plus, Pencil, Trash2, Home, LogOut, X, Check } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
+import { parseTextWithCode } from "@/lib/utils";
 
 export default function AdminPage() {
-  const [paginatedData, setPaginatedData] = React.useState<PaginatedResponse<Question>>({
+  const [paginatedData, setPaginatedData] = React.useState<
+    PaginatedResponse<Question>
+  >({
     data: [],
     total: 0,
     page: 1,
     limit: 10,
     totalPages: 0,
-  })
-  const [currentPage, setCurrentPage] = React.useState(1)
-  const [editingId, setEditingId] = React.useState<string | null>(null)
-  const [showCodeHelper, setShowCodeHelper] = React.useState(false)
+  });
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const [editingId, setEditingId] = React.useState<string | null>(null);
+  const [showCodeHelper, setShowCodeHelper] = React.useState(false);
   const [formData, setFormData] = React.useState({
     question: "",
     options: ["", "", "", ""],
     answer: "",
     explanation: "",
-  })
-  const { isAdmin, logout, password } = useAuth()
-  const router = useRouter()
+  });
+  const { isAdmin, logout, password } = useAuth();
+  const router = useRouter();
 
   const fetchQuestions = React.useCallback(async (page: number) => {
     try {
-      const response = await fetch(`/api/questions?page=${page}&limit=10`)
+      const response = await fetch(`/api/questions?page=${page}&limit=10`);
       if (response.ok) {
-        const data = await response.json()
-        setPaginatedData(data)
+        const data = await response.json();
+        setPaginatedData(data);
       }
     } catch (error) {
-      console.error("[v0] Error fetching questions:", error)
-      toast({ title: "Failed to fetch questions", variant: "destructive" })
+      console.error("[v0] Error fetching questions:", error);
+      toast({ title: "Failed to fetch questions", variant: "destructive" });
     }
-  }, [])
+  }, []);
 
   React.useEffect(() => {
     if (!isAdmin) {
-      router.push("/login")
-      return
+      router.push("/login");
+      return;
     }
-    fetchQuestions(currentPage)
-  }, [isAdmin, router, currentPage, fetchQuestions])
+    fetchQuestions(currentPage);
+  }, [isAdmin, router, currentPage, fetchQuestions]);
 
   const handlePageChange = (page: number) => {
-    setCurrentPage(page)
-    window.scrollTo({ top: 0, behavior: "smooth" })
-  }
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     try {
       if (editingId) {
@@ -70,20 +72,20 @@ export default function AdminPage() {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ...formData, adminPassword: password }),
-        })
+        });
 
-        if (!response.ok) throw new Error("Failed to update question")
-        toast({ title: "Question updated successfully" })
-        setEditingId(null)
+        if (!response.ok) throw new Error("Failed to update question");
+        toast({ title: "Question updated successfully" });
+        setEditingId(null);
       } else {
         const response = await fetch("/api/questions", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ...formData, adminPassword: password }),
-        })
+        });
 
-        if (!response.ok) throw new Error("Failed to add question")
-        toast({ title: "Question added successfully" })
+        if (!response.ok) throw new Error("Failed to add question");
+        toast({ title: "Question added successfully" });
       }
 
       setFormData({
@@ -91,24 +93,24 @@ export default function AdminPage() {
         options: ["", "", "", ""],
         answer: "",
         explanation: "",
-      })
-      fetchQuestions(currentPage)
+      });
+      fetchQuestions(currentPage);
     } catch (error) {
-      console.error("[v0] Error submitting question:", error)
-      toast({ title: "Failed to save question", variant: "destructive" })
+      console.error("[v0] Error submitting question:", error);
+      toast({ title: "Failed to save question", variant: "destructive" });
     }
-  }
+  };
 
   const handleEdit = (question: Question) => {
-    setEditingId(question.id)
+    setEditingId(question.id);
     setFormData({
       question: question.question,
       options: question.options,
       answer: question.answer,
       explanation: question.explanation || "",
-    })
-    window.scrollTo({ top: 0, behavior: "smooth" })
-  }
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this question?")) {
@@ -117,36 +119,36 @@ export default function AdminPage() {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ adminPassword: password }),
-        })
+        });
 
-        if (!response.ok) throw new Error("Failed to delete question")
-        toast({ title: "Question deleted successfully" })
-        fetchQuestions(currentPage)
+        if (!response.ok) throw new Error("Failed to delete question");
+        toast({ title: "Question deleted successfully" });
+        fetchQuestions(currentPage);
       } catch (error) {
-        console.error("[v0] Error deleting question:", error)
-        toast({ title: "Failed to delete question", variant: "destructive" })
+        console.error("[v0] Error deleting question:", error);
+        toast({ title: "Failed to delete question", variant: "destructive" });
       }
     }
-  }
+  };
 
   const handleCancel = () => {
-    setEditingId(null)
-    setShowCodeHelper(false)
+    setEditingId(null);
+    setShowCodeHelper(false);
     setFormData({
       question: "",
       options: ["", "", "", ""],
       answer: "",
       explanation: "",
-    })
-  }
+    });
+  };
 
   const insertCodeTags = (fieldName: keyof typeof formData, value: string) => {
-    if (fieldName === "options") return
-    const wrappedValue = formData[fieldName] + `<code>${value}</code>`
-    setFormData({ ...formData, [fieldName]: wrappedValue })
-  }
+    if (fieldName === "options") return;
+    const wrappedValue = formData[fieldName] + `<code>${value}</code>`;
+    setFormData({ ...formData, [fieldName]: wrappedValue });
+  };
 
-  if (!isAdmin) return null
+  if (!isAdmin) return null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -188,7 +190,9 @@ export default function AdminPage() {
                   id="question"
                   placeholder="Enter the question..."
                   value={formData.question}
-                  onChange={(e) => setFormData({ ...formData, question: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, question: e.target.value })
+                  }
                   className="min-h-[100px] font-mono text-sm"
                   required
                 />
@@ -202,9 +206,9 @@ export default function AdminPage() {
                     placeholder={`Option ${String.fromCharCode(65 + idx)}`}
                     value={option}
                     onChange={(e) => {
-                      const newOptions = [...formData.options]
-                      newOptions[idx] = e.target.value
-                      setFormData({ ...formData, options: newOptions })
+                      const newOptions = [...formData.options];
+                      newOptions[idx] = e.target.value;
+                      setFormData({ ...formData, options: newOptions });
                     }}
                     className="font-mono text-sm min-h-[60px]"
                     required
@@ -218,7 +222,9 @@ export default function AdminPage() {
                   id="answer"
                   placeholder="e.g., A, B, C, D or A, C"
                   value={formData.answer}
-                  onChange={(e) => setFormData({ ...formData, answer: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, answer: e.target.value })
+                  }
                   className="font-mono text-sm"
                   required
                 />
@@ -230,7 +236,9 @@ export default function AdminPage() {
                   id="explanation"
                   placeholder="Explain the answer..."
                   value={formData.explanation}
-                  onChange={(e) => setFormData({ ...formData, explanation: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, explanation: e.target.value })
+                  }
                   className="min-h-[100px] text-sm font-mono"
                 />
               </div>
@@ -253,7 +261,9 @@ export default function AdminPage() {
         </Card>
 
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold">All Questions ({paginatedData.total})</h2>
+          <h2 className="text-xl font-semibold">
+            All Questions ({paginatedData.total})
+          </h2>
           {paginatedData.data.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center text-muted-foreground">
@@ -266,13 +276,22 @@ export default function AdminPage() {
                 <CardHeader>
                   <CardTitle className="text-base font-semibold leading-relaxed flex items-start justify-between">
                     <span>
-                      {(currentPage - 1) * 10 + index + 1}. {parseTextWithCode(question.question)}
+                      {(currentPage - 1) * 10 + index + 1}.{" "}
+                      {parseTextWithCode(question.question)}
                     </span>
                     <div className="flex gap-2 ml-4">
-                      <Button variant="ghost" size="icon" onClick={() => handleEdit(question)}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleEdit(question)}
+                      >
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(question.id)}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(question.id)}
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -280,13 +299,18 @@ export default function AdminPage() {
                 </CardHeader>
                 <CardContent className="space-y-2">
                   {question.options.map((option, idx) => (
-                    <div key={idx} className="rounded-md bg-muted px-4 py-2 text-sm font-mono">
+                    <div
+                      key={idx}
+                      className="rounded-md bg-muted px-4 py-2 text-sm font-mono"
+                    >
                       {parseTextWithCode(option)}
                     </div>
                   ))}
                   <div className="pt-2 text-sm">
                     <span className="font-semibold">Answer: </span>
-                    <span className="font-mono text-primary">{question.answer}</span>
+                    <span className="font-mono text-primary">
+                      {question.answer}
+                    </span>
                   </div>
                 </CardContent>
               </Card>
@@ -305,5 +329,5 @@ export default function AdminPage() {
         )}
       </main>
     </div>
-  )
+  );
 }

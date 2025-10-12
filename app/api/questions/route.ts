@@ -1,16 +1,16 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { getDatabase } from "@/lib/mongodb"
-import type { Question } from "@/lib/types"
+import { type NextRequest, NextResponse } from "next/server";
+import { getDatabase } from "@/lib/mongodb";
+import type { Question } from "@/lib/types";
 
 export async function GET(request: NextRequest) {
   try {
-    const searchParams = request.nextUrl.searchParams
-    const page = Number.parseInt(searchParams.get("page") || "1")
-    const limit = Number.parseInt(searchParams.get("limit") || "10")
-    const search = searchParams.get("search") || ""
-    const skip = (page - 1) * limit
+    const searchParams = request.nextUrl.searchParams;
+    const page = Number.parseInt(searchParams.get("page") || "1");
+    const limit = Number.parseInt(searchParams.get("limit") || "10");
+    const search = searchParams.get("search") || "";
+    const skip = (page - 1) * limit;
 
-    const db = await getDatabase()
+    const db = await getDatabase();
 
     const searchFilter = search
       ? {
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
             { explanation: { $regex: search, $options: "i" } },
           ],
         }
-      : {}
+      : {};
 
     const questions = await db
       .collection<Question>("questions")
@@ -29,9 +29,11 @@ export async function GET(request: NextRequest) {
       .sort({ order: 1 })
       .skip(skip)
       .limit(limit)
-      .toArray()
+      .toArray();
 
-    const total = await db.collection<Question>("questions").countDocuments(searchFilter)
+    const total = await db
+      .collection<Question>("questions")
+      .countDocuments(searchFilter);
 
     return NextResponse.json({
       data: questions,
@@ -39,23 +41,26 @@ export async function GET(request: NextRequest) {
       page,
       limit,
       totalPages: Math.ceil(total / limit),
-    })
+    });
   } catch (error) {
-    console.error("[v0] Error fetching questions:", error)
-    return NextResponse.json({ error: "Failed to fetch questions" }, { status: 500 })
+    console.error("[v0] Error fetching questions:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch questions" },
+      { status: 500 }
+    );
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { question, options, answer, explanation, adminPassword } = body
+    const body = await request.json();
+    const { question, options, answer, explanation, adminPassword } = body;
 
     if (adminPassword !== process.env.NEXT_PUBLIC_ADMIN_PASSWORD) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const db = await getDatabase()
+    const db = await getDatabase();
     const newQuestion: Omit<Question, "_id"> = {
       id: Date.now().toString(),
       question,
@@ -63,13 +68,16 @@ export async function POST(request: NextRequest) {
       answer,
       explanation: explanation || "",
       createdAt: new Date(),
-    }
+    };
 
-    const result = await db.collection("questions").insertOne(newQuestion)
+    const result = await db.collection("questions").insertOne(newQuestion);
 
-    return NextResponse.json({ ...newQuestion, _id: result.insertedId })
+    return NextResponse.json({ ...newQuestion, _id: result.insertedId });
   } catch (error) {
-    console.error("[v0] Error creating question:", error)
-    return NextResponse.json({ error: "Failed to create question" }, { status: 500 })
+    console.error("[v0] Error creating question:", error);
+    return NextResponse.json(
+      { error: "Failed to create question" },
+      { status: 500 }
+    );
   }
 }
