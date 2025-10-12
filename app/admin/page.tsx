@@ -33,6 +33,13 @@ export default function AdminPage() {
     options: ["", "", "", ""],
     answer: "",
     explanation: "",
+    number: "",
+  });
+  const [errors, setErrors] = React.useState({
+    question: "",
+    options: ["", "", "", ""],
+    answer: "",
+    number: "",
   });
   const { isAdmin, logout, password } = useAuth();
   const router = useRouter();
@@ -66,12 +73,55 @@ export default function AdminPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validation
+    const newErrors = {
+      question: "",
+      options: ["", "", "", ""],
+      answer: "",
+      number: "",
+    };
+
+    let hasErrors = false;
+
+    // Validate question
+    if (!formData.question.trim()) {
+      newErrors.question = "Question is required";
+      hasErrors = true;
+    }
+
+    // Validate answer
+    if (!formData.answer.trim()) {
+      newErrors.answer = "Answer is required";
+      hasErrors = true;
+    }
+
+    // Validate number (should be a valid number or empty)
+    if (
+      formData.number !== "" &&
+      (isNaN(Number(formData.number)) || Number(formData.number) < 0)
+    ) {
+      newErrors.number = "Number must be a positive number or empty";
+      hasErrors = true;
+    }
+
+    setErrors(newErrors);
+
+    if (hasErrors) {
+      toast({ title: "Please fix the errors below", variant: "destructive" });
+      return;
+    }
+
     try {
       if (editingId) {
         const response = await fetch(`/api/questions/${editingId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...formData, adminPassword: password }),
+          body: JSON.stringify({
+            ...formData,
+            number:
+              formData.number === "" ? undefined : Number(formData.number),
+            adminPassword: password,
+          }),
         });
 
         if (!response.ok) throw new Error("Failed to update question");
@@ -81,7 +131,12 @@ export default function AdminPage() {
         const response = await fetch("/api/questions", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...formData, adminPassword: password }),
+          body: JSON.stringify({
+            ...formData,
+            number:
+              formData.number === "" ? undefined : Number(formData.number),
+            adminPassword: password,
+          }),
         });
 
         if (!response.ok) throw new Error("Failed to add question");
@@ -93,6 +148,13 @@ export default function AdminPage() {
         options: ["", "", "", ""],
         answer: "",
         explanation: "",
+        number: "",
+      });
+      setErrors({
+        question: "",
+        options: ["", "", "", ""],
+        answer: "",
+        number: "",
       });
       fetchQuestions(currentPage);
     } catch (error) {
@@ -108,6 +170,7 @@ export default function AdminPage() {
       options: question.options,
       answer: question.answer,
       explanation: question.explanation || "",
+      number: question.number?.toString() || "",
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -139,13 +202,14 @@ export default function AdminPage() {
       options: ["", "", "", ""],
       answer: "",
       explanation: "",
+      number: "",
     });
-  };
-
-  const insertCodeTags = (fieldName: keyof typeof formData, value: string) => {
-    if (fieldName === "options") return;
-    const wrappedValue = formData[fieldName] + `<code>${value}</code>`;
-    setFormData({ ...formData, [fieldName]: wrappedValue });
+    setErrors({
+      question: "",
+      options: ["", "", "", ""],
+      answer: "",
+      number: "",
+    });
   };
 
   if (!isAdmin) return null;
@@ -181,11 +245,35 @@ export default function AdminPage() {
                 </Button>
               )}
             </CardTitle>
+            {/* Use <code>your-code-here</code> tags to format code snippets in questions and explanations */}
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="question">Question</Label>
+                <Label htmlFor="number">
+                  Number <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="number"
+                  type="number"
+                  placeholder="Question number (for sorting)"
+                  value={formData.number}
+                  onChange={(e) =>
+                    setFormData({ ...formData, number: e.target.value })
+                  }
+                  className={`font-mono text-sm ${
+                    errors.number ? "border-destructive" : ""
+                  }`}
+                />
+                {errors.number && (
+                  <p className="text-sm text-destructive">{errors.number}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="question">
+                  Question <span className="text-destructive">*</span>
+                </Label>
                 <Textarea
                   id="question"
                   placeholder="Enter the question..."
@@ -193,31 +281,45 @@ export default function AdminPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, question: e.target.value })
                   }
-                  className="min-h-[100px] font-mono text-sm"
+                  className={`min-h-[100px] font-mono text-sm ${
+                    errors.question ? "border-destructive" : ""
+                  }`}
                   required
                 />
+                {errors.question && (
+                  <p className="text-sm text-destructive">{errors.question}</p>
+                )}
               </div>
 
               <div className="space-y-2">
                 <Label>Options</Label>
                 {formData.options.map((option, idx) => (
-                  <Textarea
-                    key={idx}
-                    placeholder={`Option ${String.fromCharCode(65 + idx)}`}
-                    value={option}
-                    onChange={(e) => {
-                      const newOptions = [...formData.options];
-                      newOptions[idx] = e.target.value;
-                      setFormData({ ...formData, options: newOptions });
-                    }}
-                    className="font-mono text-sm min-h-[60px]"
-                    required
-                  />
+                  <div key={idx} className="space-y-1">
+                    <Textarea
+                      placeholder={`Option ${String.fromCharCode(65 + idx)}`}
+                      value={option}
+                      onChange={(e) => {
+                        const newOptions = [...formData.options];
+                        newOptions[idx] = e.target.value;
+                        setFormData({ ...formData, options: newOptions });
+                      }}
+                      className={`font-mono text-sm min-h-[60px] ${
+                        errors.options[idx] ? "border-destructive" : ""
+                      }`}
+                    />
+                    {errors.options[idx] && (
+                      <p className="text-sm text-destructive">
+                        {errors.options[idx]}
+                      </p>
+                    )}
+                  </div>
                 ))}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="answer">Answer</Label>
+                <Label htmlFor="answer">
+                  Answer <span className="text-destructive">*</span>
+                </Label>
                 <Input
                   id="answer"
                   placeholder="e.g., A, B, C, D or A, C"
@@ -225,9 +327,14 @@ export default function AdminPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, answer: e.target.value })
                   }
-                  className="font-mono text-sm"
+                  className={`font-mono text-sm ${
+                    errors.answer ? "border-destructive" : ""
+                  }`}
                   required
                 />
+                {errors.answer && (
+                  <p className="text-sm text-destructive">{errors.answer}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -272,11 +379,13 @@ export default function AdminPage() {
             </Card>
           ) : (
             paginatedData.data.map((question, index) => (
-              <Card key={question.id}>
+              <Card key={index}>
                 <CardHeader>
                   <CardTitle className="text-base font-semibold leading-relaxed flex items-start justify-between">
                     <span>
-                      {(currentPage - 1) * 10 + index + 1}.{" "}
+                      {question.number && question.number > 0
+                        ? `${question.number}.`
+                        : `${(currentPage - 1) * 10 + index + 1}.`}{" "}
                       {parseTextWithCode(question.question)}
                     </span>
                     <div className="flex gap-2 ml-4">
@@ -298,7 +407,7 @@ export default function AdminPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  {question.options.map((option, idx) => (
+                  {question.options?.map((option, idx) => (
                     <div
                       key={idx}
                       className="rounded-md bg-muted px-4 py-2 text-sm font-mono"
