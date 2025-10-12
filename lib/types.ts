@@ -5,6 +5,7 @@ export interface Question {
   answer: string
   explanation?: string
   category?: string
+  number?: number
   createdAt?: Date
 }
 

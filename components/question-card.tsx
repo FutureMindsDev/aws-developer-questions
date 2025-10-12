@@ -1,31 +1,34 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { ChevronDown, ChevronUp } from "lucide-react"
-import type { Question } from "@/lib/types"
-import { parseTextWithCode } from "@/lib/utils"
+import * as React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import type { Question } from "@/lib/types";
+import { parseTextWithCode } from "@/lib/utils";
 
 interface QuestionCardProps {
-  question: Question
-  index: number
+  question: Question;
+  // index: number
 }
 
-export function QuestionCard({ question, index }: QuestionCardProps) {
-  const [showAnswer, setShowAnswer] = React.useState(false)
+export function QuestionCard({ question }: QuestionCardProps) {
+  const [showAnswer, setShowAnswer] = React.useState(false);
 
   return (
     <Card className="border-border">
       <CardHeader>
         <CardTitle className="text-base font-semibold leading-relaxed">
-          {index + 1}. {parseTextWithCode(question.question)}
+          {question.number || "Number"}. {parseTextWithCode(question.question)}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
           {question.options.map((option, idx) => (
-            <div key={idx} className="rounded-md bg-muted px-4 py-2 text-sm font-mono">
+            <div
+              key={idx}
+              className="rounded-md bg-muted px-4 py-2 text-sm font-mono"
+            >
               {parseTextWithCode(option)}
             </div>
           ))}
@@ -38,22 +41,30 @@ export function QuestionCard({ question, index }: QuestionCardProps) {
           className="w-full justify-between"
         >
           <span>{showAnswer ? "Hide" : "Show"} Answer</span>
-          {showAnswer ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          {showAnswer ? (
+            <ChevronUp className="h-4 w-4" />
+          ) : (
+            <ChevronDown className="h-4 w-4" />
+          )}
         </Button>
 
         {showAnswer && (
           <div className="space-y-2 rounded-md border border-border bg-accent p-4">
             <div className="font-semibold text-sm">Answer:</div>
-            <div className="font-mono text-sm text-primary">{question.answer}</div>
+            <div className="font-mono text-sm text-primary">
+              {question.answer}
+            </div>
             {question.explanation && (
               <>
                 <div className="font-semibold text-sm mt-3">Explanation:</div>
-                <div className="text-sm leading-relaxed">{parseTextWithCode(question.explanation)}</div>
+                <div className="text-sm leading-relaxed">
+                  {parseTextWithCode(question.explanation)}
+                </div>
               </>
             )}
           </div>
         )}
       </CardContent>
     </Card>
-  )
+  );
 }

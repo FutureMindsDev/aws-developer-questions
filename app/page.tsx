@@ -1,69 +1,74 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { useRouter } from "next/navigation"
-import { QuestionCard } from "@/components/question-card"
-import { Pagination } from "@/components/pagination"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { useAuth } from "@/components/auth-provider"
-import { LogOut, Search, Shield } from "lucide-react"
-import type { Question, PaginatedResponse } from "@/lib/types"
+import * as React from "react";
+import { useRouter } from "next/navigation";
+import { QuestionCard } from "@/components/question-card";
+import { Pagination } from "@/components/pagination";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useAuth } from "@/components/auth-provider";
+import { LogOut, Search, Shield } from "lucide-react";
+import type { Question, PaginatedResponse } from "@/lib/types";
 
 export default function HomePage() {
-  const [paginatedData, setPaginatedData] = React.useState<PaginatedResponse<Question>>({
+  const [paginatedData, setPaginatedData] = React.useState<
+    PaginatedResponse<Question>
+  >({
     data: [],
     total: 0,
     page: 1,
     limit: 10,
     totalPages: 0,
-  })
-  const [searchQuery, setSearchQuery] = React.useState("")
-  const [currentPage, setCurrentPage] = React.useState(1)
-  const [loading, setLoading] = React.useState(true)
-  const { isAuthenticated, isAdmin, logout } = useAuth()
-  const router = useRouter()
+  });
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const [loading, setLoading] = React.useState(true);
+  const { isAuthenticated, isAdmin, logout } = useAuth();
+  const router = useRouter();
 
-  const fetchQuestions = React.useCallback(async (page: number, search: string) => {
-    setLoading(true)
-    try {
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: "10",
-        ...(search && { search }),
-      })
-      const response = await fetch(`/api/questions?${params}`)
-      if (response.ok) {
-        const data = await response.json()
-        setPaginatedData(data)
+  const fetchQuestions = React.useCallback(
+    async (page: number, search: string) => {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams({
+          page: page.toString(),
+          limit: "10",
+          ...(search && { search }),
+        });
+        const response = await fetch(`/api/questions?${params}`);
+        if (response.ok) {
+          const data = await response.json();
+          setPaginatedData(data);
+        }
+      } catch (error) {
+        console.error("[v0] Error fetching questions:", error);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("[v0] Error fetching questions:", error)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+    },
+    []
+  );
 
   React.useEffect(() => {
     const timer = setTimeout(() => {
-      setCurrentPage(1) // Reset to page 1 when searching
-      fetchQuestions(1, searchQuery)
-    }, 300)
+      setCurrentPage(1); // Reset to page 1 when searching
+      fetchQuestions(1, searchQuery);
+    }, 300);
 
-    return () => clearTimeout(timer)
-  }, [searchQuery, fetchQuestions])
+    return () => clearTimeout(timer);
+  }, [searchQuery, fetchQuestions]);
 
   React.useEffect(() => {
     if (currentPage !== 1 || searchQuery === "") {
-      fetchQuestions(currentPage, searchQuery)
+      fetchQuestions(currentPage, searchQuery);
     }
-  }, [currentPage])
+  }, [currentPage]);
 
   const handlePageChange = (page: number) => {
-    setCurrentPage(page)
-    window.scrollTo({ top: 0, behavior: "smooth" })
-  }
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -74,7 +79,11 @@ export default function HomePage() {
           </div>
           <div className="flex items-center gap-2">
             {isAdmin && (
-              <Button variant="ghost" size="sm" onClick={() => router.push("/admin")}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => router.push("/admin")}
+              >
                 <Shield className="h-4 w-4 mr-2" />
                 Admin
               </Button>
@@ -86,7 +95,11 @@ export default function HomePage() {
                 Logout
               </Button>
             ) : (
-              <Button variant="ghost" size="sm" onClick={() => router.push("/login")}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => router.push("/login")}
+              >
                 Login
               </Button>
             )}
@@ -106,20 +119,27 @@ export default function HomePage() {
             />
           </div>
           <div className="text-sm text-muted-foreground">
-            {loading ? "Loading..." : `${paginatedData.total} question${paginatedData.total !== 1 ? "s" : ""} found`}
+            {loading
+              ? "Loading..."
+              : `${paginatedData.total} question${
+                  paginatedData.total !== 1 ? "s" : ""
+                } found`}
           </div>
         </div>
 
         <div className="space-y-4">
           {loading ? (
-            <div className="text-center py-12 text-muted-foreground">Loading questions...</div>
+            <div className="text-center py-12 text-muted-foreground">
+              Loading questions...
+            </div>
           ) : paginatedData.data.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
-              No questions found. {isAdmin && "Go to admin panel to add questions."}
+              No questions found.{" "}
+              {isAdmin && "Go to admin panel to add questions."}
             </div>
           ) : (
             paginatedData.data.map((question, index) => (
-              <QuestionCard key={question.id} question={question} index={(currentPage - 1) * 10 + index} />
+              <QuestionCard key={question.id} question={question} />
             ))
           )}
         </div>
@@ -135,5 +155,5 @@ export default function HomePage() {
         )}
       </main>
     </div>
-  )
+  );
 }

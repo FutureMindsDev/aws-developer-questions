@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
             { options: { $elemMatch: { $regex: search, $options: "i" } } },
             { answer: { $regex: search, $options: "i" } },
             { explanation: { $regex: search, $options: "i" } },
+            ...(isNaN(Number(search)) ? [] : [{ number: Number(search) }]),
           ],
         }
       : {}
@@ -26,12 +27,14 @@ export async function GET(request: NextRequest) {
     const questions = await db
       .collection<Question>("questions")
       .find(searchFilter)
-      .sort({ order: 1 })
+      .sort({ number: -1, order: 1 })
       .skip(skip)
       .limit(limit)
       .toArray()
 
-    const total = await db.collection<Question>("questions").countDocuments(searchFilter)
+    const total = await db
+      .collection<Question>("questions")
+      .countDocuments(searchFilter)
 
     return NextResponse.json({
       data: questions,
@@ -42,14 +45,17 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error("[v0] Error fetching questions:", error)
-    return NextResponse.json({ error: "Failed to fetch questions" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Failed to fetch questions" },
+      { status: 500 }
+    )
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { question, options, answer, explanation, adminPassword } = body
+    const { question, options, answer, explanation, number, adminPassword } = body
 
     if (adminPassword !== process.env.NEXT_PUBLIC_ADMIN_PASSWORD) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -62,6 +68,7 @@ export async function POST(request: NextRequest) {
       options,
       answer,
       explanation: explanation || "",
+      number: number,
       createdAt: new Date(),
     }
 
@@ -70,6 +77,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ...newQuestion, _id: result.insertedId })
   } catch (error) {
     console.error("[v0] Error creating question:", error)
-    return NextResponse.json({ error: "Failed to create question" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Failed to create question" },
+      { status: 500 }
+    )
   }
 }
