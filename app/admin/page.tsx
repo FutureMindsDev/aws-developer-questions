@@ -30,14 +30,14 @@ export default function AdminPage() {
   const [showCodeHelper, setShowCodeHelper] = React.useState(false);
   const [formData, setFormData] = React.useState({
     question: "",
-    options: ["", "", "", ""],
+    options: ["", "", "", "", ""],
     answer: "",
     explanation: "",
     number: "",
   });
   const [errors, setErrors] = React.useState({
     question: "",
-    options: ["", "", "", ""],
+    options: ["", "", "", "", ""],
     answer: "",
     number: "",
   });
@@ -76,7 +76,7 @@ export default function AdminPage() {
     // Validation
     const newErrors = {
       question: "",
-      options: ["", "", "", ""],
+      options: ["", "", "", "", ""],
       answer: "",
       number: "",
     };
@@ -145,14 +145,14 @@ export default function AdminPage() {
 
       setFormData({
         question: "",
-        options: ["", "", "", ""],
+        options: ["", "", "", "", ""],
         answer: "",
         explanation: "",
         number: "",
       });
       setErrors({
         question: "",
-        options: ["", "", "", ""],
+        options: ["", "", "", "", ""],
         answer: "",
         number: "",
       });
@@ -199,14 +199,14 @@ export default function AdminPage() {
     setShowCodeHelper(false);
     setFormData({
       question: "",
-      options: ["", "", "", ""],
+      options: ["", "", "", "", ""],
       answer: "",
       explanation: "",
       number: "",
     });
     setErrors({
       question: "",
-      options: ["", "", "", ""],
+      options: ["", "", "", "", ""],
       answer: "",
       number: "",
     });
@@ -326,7 +326,7 @@ export default function AdminPage() {
                 </Label>
                 <Input
                   id="answer"
-                  placeholder="e.g., A, B, C, D or A, C"
+                  placeholder="e.g., A, B, C, D, E or A, C, E"
                   value={formData.answer}
                   onChange={(e) =>
                     setFormData({ ...formData, answer: e.target.value })
