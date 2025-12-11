@@ -24,7 +24,7 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = React.useState("");
   const [currentPage, setCurrentPage] = React.useState(1);
   const [loading, setLoading] = React.useState(true);
-  const { isAuthenticated, isAdmin, logout } = useAuth();
+  const { isAdmin, logout } = useAuth();
   const router = useRouter();
 
   const fetchQuestions = React.useCallback(
@@ -51,38 +51,21 @@ export default function HomePage() {
   );
 
   React.useEffect(() => {
-    if (!isAuthenticated) {
-      router.push("/login");
-      return;
-    }
-  }, [isAuthenticated, router]);
-
-  React.useEffect(() => {
-    if (!isAuthenticated) {
-      return; // Don't fetch if not authenticated
-    }
     const timer = setTimeout(() => {
       setCurrentPage(1); // Reset to page 1 when searching
       fetchQuestions(1, searchQuery);
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [searchQuery, fetchQuestions, isAuthenticated]);
+  }, [searchQuery, fetchQuestions]);
 
   React.useEffect(() => {
-    if (!isAuthenticated) {
-      return; // Don't fetch if not authenticated
-    }
     if (currentPage !== 1 || searchQuery === "") {
       fetchQuestions(currentPage, searchQuery);
     }
-  }, [currentPage, isAuthenticated]);
+  }, [currentPage, searchQuery, fetchQuestions]);
 
   const handlePageChange = (page: number) => {
-    if (!isAuthenticated) {
-      router.push("/login");
-      return;
-    }
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -102,22 +85,14 @@ export default function HomePage() {
                 onClick={() => router.push("/admin")}
               >
                 <Shield className="h-4 w-4 mr-2" />
-                Admin
+                Admin Dashboard
               </Button>
             )}
             <ThemeToggle />
-            {isAuthenticated ? (
+            {isAdmin && (
               <Button variant="ghost" size="sm" onClick={logout}>
                 <LogOut className="h-4 w-4 mr-2" />
                 Logout
-              </Button>
-            ) : (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => router.push("/login")}
-              >
-                Login
               </Button>
             )}
           </div>

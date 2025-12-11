@@ -22,11 +22,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   React.useEffect(() => {
     const auth = sessionStorage.getItem("auth")
-    if (auth) {
+    if (!auth) return
+
+    try {
       const { isAdmin, password } = JSON.parse(auth)
-      setIsAuthenticated(true)
-      setIsAdmin(isAdmin)
-      setPassword(password)
+      if (isAdmin && password) {
+        setIsAuthenticated(true)
+        setIsAdmin(true)
+        setPassword(password)
+      } else {
+        sessionStorage.removeItem("auth")
+      }
+    } catch {
+      sessionStorage.removeItem("auth")
     }
   }, [])
 
@@ -40,20 +48,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       sessionStorage.setItem("auth", JSON.stringify({ isAdmin: true, password: inputPassword }))
       router.push("/admin")
       return true
-    } else {
-      setIsAuthenticated(true)
-      setIsAdmin(false)
-      setPassword(null)
-      sessionStorage.setItem("auth", JSON.stringify({ isAdmin: false, password: null }))
-      toast({
-        title: "You are not admin, redirecting to main dashboard",
-        variant: "default",
-      })
-      setTimeout(() => {
-        router.push("/")
-      }, 1500)
-      return false
     }
+
+    toast({
+      title: "Invalid admin password",
+      variant: "destructive",
+    })
+    setIsAuthenticated(false)
+    setIsAdmin(false)
+    setPassword(null)
+    sessionStorage.removeItem("auth")
+    return false
   }
 
   const logout = () => {
@@ -61,7 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsAdmin(false)
     setPassword(null)
     sessionStorage.removeItem("auth")
-    router.push("/login")
+    router.push("/")
   }
 
   return (
