@@ -11,7 +11,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Pagination } from "@/components/pagination";
 import { useAuth } from "@/components/auth-provider";
 import type { Question, PaginatedResponse } from "@/lib/types";
-import { Plus, Pencil, Trash2, Home, LogOut, X, Check } from "lucide-react";
+import { Plus, Pencil, Trash2, Home, LogOut, X, Check, Lock } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { parseTextWithCode } from "@/lib/utils";
 
@@ -41,8 +41,9 @@ export default function AdminPage() {
     answer: "",
     number: "",
   });
-  const { isAdmin, logout, password } = useAuth();
+  const { isAdmin, logout, password, login } = useAuth();
   const router = useRouter();
+  const [loginPassword, setLoginPassword] = React.useState("");
 
   const fetchQuestions = React.useCallback(async (page: number) => {
     try {
@@ -59,11 +60,10 @@ export default function AdminPage() {
 
   React.useEffect(() => {
     if (!isAdmin) {
-      router.push("/login");
       return;
     }
     fetchQuestions(currentPage);
-  }, [isAdmin, router, currentPage, fetchQuestions]);
+  }, [isAdmin, currentPage, fetchQuestions]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -212,7 +212,55 @@ export default function AdminPage() {
     });
   };
 
-  if (!isAdmin) return null;
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="absolute top-4 right-4">
+          <ThemeToggle />
+        </div>
+
+        <Card className="w-full max-w-md">
+          <CardHeader className="space-y-1">
+            <div className="flex items-center justify-center mb-4">
+              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <Lock className="h-6 w-6 text-primary" />
+              </div>
+            </div>
+            <CardTitle className="text-2xl text-center">Admin Access</CardTitle>
+            <p className="text-center text-muted-foreground">
+              Enter the admin password to manage the question bank.
+            </p>
+          </CardHeader>
+          <CardContent>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                login(loginPassword);
+              }}
+              className="space-y-4"
+            >
+              <div className="space-y-2">
+                <Label htmlFor="admin-password">Password</Label>
+                <Input
+                  id="admin-password"
+                  type="password"
+                  placeholder="Enter admin password"
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  maxLength={6}
+                  className="font-mono"
+                  required
+                />
+              </div>
+              <Button type="submit" className="w-full">
+                Sign In
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
