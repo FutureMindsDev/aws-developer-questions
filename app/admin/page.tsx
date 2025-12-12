@@ -10,8 +10,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Pagination } from "@/components/pagination";
 import { useAuth } from "@/components/auth-provider";
+import { CheckIcon } from "lucide-react";
 import type { Question, PaginatedResponse } from "@/lib/types";
-import { Plus, Pencil, Trash2, Home, LogOut, X, Check, Lock } from "lucide-react";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  Home,
+  LogOut,
+  X,
+  Check,
+  Lock,
+} from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { parseTextWithCode } from "@/lib/utils";
 
@@ -118,6 +128,7 @@ export default function AdminPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             ...formData,
+            options: formData.options.filter((option) => option.trim() !== ""),
             number:
               formData.number === "" ? undefined : Number(formData.number),
             adminPassword: password,
@@ -133,6 +144,7 @@ export default function AdminPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             ...formData,
+            options: formData.options.filter((option) => option.trim() !== ""),
             number:
               formData.number === "" ? undefined : Number(formData.number),
             adminPassword: password,
@@ -295,7 +307,11 @@ export default function AdminPage() {
             </CardTitle>
             <div className="mt-2 p-3 bg-muted rounded-md">
               <p className="text-sm text-muted-foreground">
-                💡 <strong>Code formatting:</strong> Use <code className="bg-background px-1 py-0.5 rounded text-xs">&lt;code&gt;your-code-here&lt;/code&gt;</code> tags to format code snippets in questions and explanations.
+                💡 <strong>Code formatting:</strong> Use{" "}
+                <code className="bg-background px-1 py-0.5 rounded text-xs">
+                  &lt;code&gt;your-code-here&lt;/code&gt;
+                </code>{" "}
+                tags to format code snippets in questions and explanations.
               </p>
             </div>
           </CardHeader>
@@ -347,18 +363,60 @@ export default function AdminPage() {
                 <Label>Options</Label>
                 {formData.options.map((option, idx) => (
                   <div key={idx} className="space-y-1">
-                    <Textarea
-                      placeholder={`Option ${String.fromCharCode(65 + idx)}`}
-                      value={option}
-                      onChange={(e) => {
-                        const newOptions = [...formData.options];
-                        newOptions[idx] = e.target.value;
-                        setFormData({ ...formData, options: newOptions });
-                      }}
-                      className={`font-mono text-sm min-h-[60px] ${
-                        errors.options[idx] ? "border-destructive" : ""
-                      }`}
-                    />
+                    <div className="flex items-start space-x-2">
+                      <Textarea
+                        placeholder={`Option ${String.fromCharCode(65 + idx)}`}
+                        value={option}
+                        onChange={(e) => {
+                          const newOptions = [...formData.options];
+                          newOptions[idx] = e.target.value;
+                          setFormData({ ...formData, options: newOptions });
+                        }}
+                        className={`font-mono text-sm min-h-[60px] flex-1 ${
+                          errors.options[idx] ? "border-destructive" : ""
+                        }`}
+                      />
+                      <Button
+                        variant={
+                          formData.answer?.includes(
+                            String.fromCharCode(65 + idx),
+                          )
+                            ? "default"
+                            : "outline"
+                        }
+                        onClick={(e) => {
+                          e.preventDefault();
+                          const answerArray = formData.answer
+                            ? formData.answer.split(",").map((a) => a.trim())
+                            : [];
+                          const optionLetter = String.fromCharCode(65 + idx);
+
+                          if (answerArray.includes(optionLetter)) {
+                            const newAnswer = answerArray
+                              .filter((a) => a !== optionLetter)
+                              .join(", ");
+                            setFormData({ ...formData, answer: newAnswer });
+                          } else {
+                            const newAnswer = [
+                              ...answerArray,
+                              optionLetter,
+                            ].join(", ");
+                            setFormData({ ...formData, answer: newAnswer });
+                          }
+                        }}
+                        className={`h-10 w-10 rounded-md border flex items-center justify-center ${
+                          formData.answer?.includes(
+                            String.fromCharCode(65 + idx),
+                          )
+                            ? "text-primary-foreground"
+                            : "border-input"
+                        }`}
+                      >
+                        {formData.answer?.includes(
+                          String.fromCharCode(65 + idx),
+                        ) && <CheckIcon className="h-5 w-5" />}
+                      </Button>
+                    </div>
                     {errors.options[idx] && (
                       <p className="text-sm text-destructive">
                         {errors.options[idx]}
@@ -366,24 +424,10 @@ export default function AdminPage() {
                     )}
                   </div>
                 ))}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="answer">
-                  Answer <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="answer"
-                  placeholder="e.g., A, B, C, D, E or A, C, E"
-                  value={formData.answer}
-                  onChange={(e) =>
-                    setFormData({ ...formData, answer: e.target.value })
-                  }
-                  className={`font-mono text-sm ${
-                    errors.answer ? "border-destructive" : ""
-                  }`}
-                  required
-                />
+                <div className="text-sm text-muted-foreground mt-2">
+                  Click the checkmark next to each option to select it as an
+                  answer
+                </div>
                 {errors.answer && (
                   <p className="text-sm text-destructive">{errors.answer}</p>
                 )}

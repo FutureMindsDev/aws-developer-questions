@@ -1,9 +1,10 @@
 # aws-developer-old-questions
+
 ## Old Question 1
 
 11. A developer creates a customer managed key for multiple AWS users to encrypt data in Amazon S3. The developer configures Amazon Simple Notification
-Service (Amazon SNS) to publish a message if key deletion is scheduled. The developer needs to preserve any SNS messages that cannot be delivered so that those messages can be reprocessed.
-Which AWS service or feature should the developer use to meet this requirement?
+    Service (Amazon SNS) to publish a message if key deletion is scheduled. The developer needs to preserve any SNS messages that cannot be delivered so that those messages can be reprocessed.
+    Which AWS service or feature should the developer use to meet this requirement?
 
 <ol type="A">
  <li>Amazon Simple Email Service (Amazon SES)</li>
@@ -15,10 +16,10 @@ Which AWS service or feature should the developer use to meet this requirement?
   C
 </details>
 
-***
+---
 
 14. A company is using AWS Elastic Beanstalk to deploy a three-tier application. The application uses an Amazon RDS DB instance as the database tier. The company wants to decouple the DB instance from the Elastic Beanstalk environment.
-Which combination of steps should a developer lake to meet this requirement? (Choose two.)
+    Which combination of steps should a developer lake to meet this requirement? (Choose two.)
 
 <ol type="A">
  <li>Create a new Elastic Beanstalk environment that connects to the DB instance.</li>
@@ -31,10 +32,10 @@ Which combination of steps should a developer lake to meet this requirement? (Ch
   A, B
 </details>
 
-***
+---
 
 21. A developer needs to write an AWS CloudFormation template on a local machine and deploy a CloudFormation stack to AWS.
-What must the developer do to complete these tasks?
+    What must the developer do to complete these tasks?
 
 <ol type="A">
  <li>Install the AWS CLI. Configure the AWS CLI by using an IAM user name and password.</li>
@@ -46,11 +47,11 @@ What must the developer do to complete these tasks?
   C
 </details>
 
-***
+---
 
 22. A developer is working on a web application that runs on Amazon Elastic Container Service (Amazon ECS) and uses an Amazon DynamoDB table to store data.
-The application performs a large number of read requests against a small set of the table data.
-How can the developer improve the performance of these requests? (Choose two.)
+    The application performs a large number of read requests against a small set of the table data.
+    How can the developer improve the performance of these requests? (Choose two.)
 
 <ol type="A">
  <li>Create an Amazon ElastiCache cluster. Configure the application to cache data in the cluster.</li>
@@ -79,10 +80,10 @@ Which solution will meet these requirements with the LEAST management overhead?
   C
 </details>
 
-***
+---
 
 2. A company is running Amazon EC2 instances in multiple AWS accounts. A developer needs to implement an application that collects all the lifecycle events of the EC2 instances. The application needs to store the lifecycle events in a single Amazon Simple Queue Service (Amazon SQS) queue in the company's main AWS account for further processing.
-Which solution will meet these requirements?
+   Which solution will meet these requirements?
 
 <ol type="A">
  <li>Configure Amazon EC2 to deliver the EC2 instance lifecycle events from all accounts to the Amazon EventBridge event bus of the main account. Add an EventBridge rule to the event bus of the main account that matches all EC2 instance lifecycle events. Add the SQS queue as a target of the rule.</li>
@@ -94,7 +95,7 @@ Which solution will meet these requirements?
   D
 </details>
 
-***
+---
 
 90. A company moved some of its secure files to a private Amazon S3 bucket that has no public access. The company wants to develop a serverless application that gives its employees the ability to log in and securely share the files with other users.
 
@@ -110,7 +111,7 @@ Which AWS feature should the company use to share and access the files securely?
   B
 </details>
 
-***
+---
 
 153. A company uses a custom root certificate authority certificate chain (Root CA Cert) that is 10 KB in size to generate SSL certificates for its on-premises HTTPS endpoints. One of the company’s cloud-based applications has hundreds of AWS Lambda functions that pull data from these endpoints. A developer updated the trust store of the Lambda execution environment to use the Root CA Cert when the Lambda execution environment is initialized. The developer bundled the Root CA Cert as a text file in the Lambda deployment bundle.
 
@@ -129,7 +130,7 @@ Which combination of steps should the developer take to meet these requirements 
   A, E
 </details>
 
-***
+---
 
 198. A developer has created an AWS Lambda function that makes queries to an Amazon Aurora MySQL DB instance. When the developer performs a test, the DB instance shows an error for too many connections.
 
@@ -145,7 +146,8 @@ Which solution will meet these requirements with the LEAST operational effort?
   D
 </details>
 
-***
+---
+
 260. A developer is writing an application that will retrieve sensitive data from a third-party system. The application will format the data into a PDF file. The PDF file could be more than 1 MB. The application will encrypt the data to disk by using AWS Key Management Service (AWS KMS). The application will decrypt the file when a user requests to download it. The retrieval and formatting portions of the application are complete.
 
 The developer needs to use the GenerateDataKey API to encrypt the PDF file so that the PDF file can be decrypted later. The developer needs to use an AWS KMS symmetric customer managed key for encryption.
@@ -162,13 +164,14 @@ Which solutions will meet these requirements?
   A
 </details>
 
-***
+---
 
 262. A company wants to test its web application more frequently. The company deploys the application by using a separate AWS CloudFormation stack for each environment. The company deploys the same CloudFormation template to each stack as the application progresses through the development lifecycle.
 
 A developer needs to build in notifications for the quality assurance (QA) team. The developer wants the notifications to occur for new deployments in the final preproduction environment.
 
 Which solution will meet these requirements?
+
 <ol type="A">
  <li>Create an Amazon Simple Notification Service (Amazon SNS) topic. Subscribe the QA team to the Amazon SNS topic. Update the CloudFormation stack options to point to the SNS topic in the pre-production environment.</li>
  <li>Create an AWS Lambda function that notifies the QA team. Create an Amazon EventBridge rule to invoke the Lambda function on the default event bus. Filter the events on the CloudFormation service and on the CloudFormation stack Amazon Resource Name (ARN).</li>
@@ -179,11 +182,12 @@ Which solution will meet these requirements?
   A
 </details>
 
-***
+---
 
 269. A developer is optimizing an AWS Lambda function and wants to test the changes in production on a small percentage of all traffic. The Lambda function serves requests to a RE ST API in Amazon API Gateway. The developer needs to deploy their changes and perform a test in production without changing the API Gateway URL.
 
 Which solution will meet these requirements?
+
 <ol type="A">
  <li>Define a function version for the currently deployed production Lambda function. Update the API Gateway endpoint to reference the new Lambda function version. Upload and publish the optimized Lambda function code. On the production API Gateway stage, define a canary release and set the percentage of traffic to direct to the canary release. Update the API Gateway endpoint to use the $LATEST version of the Lambda function. Publish the API to the canary stage.</li>
  <li>Define a function version for the currently deployed production Lambda function. Update the API Gateway endpoint to reference the new Lambda function version. Upload and publish the optimized Lambda function code. Update the API Gateway endpoint to use the $LATEST version of the Lambda function. Deploy a new API Gateway stage.</li>
@@ -194,7 +198,7 @@ Which solution will meet these requirements?
   C
 </details>
 
-***
+---
 
 294. A company's developer has deployed an application in AWS by using AWS CloudFormation. The CloudFormation stack includes parameters in AWS Systems Manager Parameter Store that the application uses as configuration settings. The application can modify the parameter values.
 
@@ -212,13 +216,14 @@ Which solution will meet these requirements with the LEAST development effort?
   A
 </details>
 
-***
+---
 
 302. A company runs a serverless application on AWS. The application includes an AWS Lambda function. The Lambda function processes data and stores the data in an Amazon RDS for PostgreSQL database. A developer created a user credentials in the database for the application.
 
 The developer needs to use AWS Secrets Manager to manage the user credentials. The password must to be rotated on a regular basis. The solution needs to ensure that there is high availability and no downtime for the application during secret rotation.
 
 What should the developer do to meet these requirements?
+
 <ol type="A">
  <li>Configure managed rotation with the single user rotation strategy.</li>
  <li>Configure managed rotation with the alternating users rotation strategy.</li>
@@ -229,7 +234,7 @@ What should the developer do to meet these requirements?
   D
 </details>
 
-***
+---
 
 303. A company runs an application on AWS. The application consists of a static website that is hosted on Amazon S3. The application includes Amazon API Gateway APIs that invoke AWS Lambda functions. During a period of high traffic on the application, application users reported that the application was slow at irregular intervals. There were no failed requests.
 
@@ -247,11 +252,12 @@ Which solution will meet these requirements?
   C
 </details>
 
-***
+---
 
 359. A company has an application that uses an AWS Lambda function to process data. A developer must implement encryption in transit for all sensitive configuration data, such as API keys, that is stored in the application. The developer creates an AWS Key Management Service (AWS KMS) customer managed key.
 
 What should the developer do next to meet the encryption requirement?
+
 <ol type="A">
  <li>Create parameters of the String type in AWS Systems Manager Parameter Store. For each parameter, specify the KMS key ID to encrypt the parameter in transit. Reference the GetParameter API call in the Lambda environment variables.</li>
  <li>Create secrets in AWS Secrets Manager by using the customer managed KMS key. Create a new Lambda function and set up a Lambda layer. Configure the Lambda layer to retrieve the values from Secrets Manager.</li>
@@ -262,7 +268,7 @@ What should the developer do next to meet the encryption requirement?
   D
 </details>
 
-***
+---
 
 373. A company has a serverless application that uses Amazon API Gateway backed by AWS Lambda proxy integration. The company is developing several backend APIs. The company needs a landing page to provide an overview of navigation to the APIs.
 
@@ -281,11 +287,12 @@ What should the developer do next to meet these requirements?
   C
 </details>
 
-***
+---
 
 451. A developer is using an AWS Lambda function to process data. The developer needs to extract custom metrics about processing times from the Lambda logs. The developer needs to analyze the metrics, set alarms, and detect issues in real time.
 
 Which solution will meet these requirements?
+
 <ol type="A">
  <li>Publish custom metric data to AWS CloudTrail by using the PutMetricData API operation. Classify and collect the metrics. Create graphs and alarms in CloudTrail for the custom metrics.
 </li>
@@ -297,7 +304,7 @@ Which solution will meet these requirements?
   B
 </details>
 
-***
+---
 
 454. A developer built an application that uses AWS Lambda functions to process images. The developer wants to improve image processing times throughout the day.
 
@@ -323,11 +330,12 @@ Which query will meet these requirements?
   A
 </details>
 
-***
+---
 
 463. An application is experiencing performance issues based on increased demand. This increased demand is on read-only historical records pulled from an Amazon RDS-hosted database with custom views and queries. A developer must improve performance without changing the database structure.
 
 Which approach will improve performance and MINIMIZE management overhead?
+
 <ol type="A">
 <li>Deploy Amazon DynamoDB, move all the data, and point to DynamoDB.</li>
 <li>Deploy Amazon ElastiCache (Redis OSS) and cache the data for the application.</li>
@@ -338,7 +346,7 @@ Which approach will improve performance and MINIMIZE management overhead?
   B
 </details>
 
-***
+---
 
 465. A company’s AWS accounts are in an organization in AWS Organizations. An application in Account A uses environment variables that are stored as parameters in AWS Systems Manager Parameter Store. A developer is creating a new application in Account B that needs to use the same environment variables.
 
@@ -356,7 +364,7 @@ Which solution will meet these requirements with the LEAST operational overhead?
   C
 </details>
 
-***
+---
 
 486. A developer is creating an AWS Step Functions state machine to handle an order processing workflow. When the state machine receives an order, the state machine pauses until the order has been confirmed. A record that is added to an Amazon DynamoDB table by another service confirms each order.
 
@@ -375,7 +383,7 @@ Which solution will meet this requirement?
   A
 </details>
 
-***
+---
 
 489. A company’s application includes an Amazon DynamoDB table for product orders. The table has a primary partition key of orderId and has no sort key. The company is adding a new feature that requires the application to query the table by using the customerId attribute.
 
@@ -391,7 +399,7 @@ Which solution will provide this query functionality?
   B
 </details>
 
-***
+---
 
 499. A company is developing a new application that uses Amazon EC2, Amazon S3, and AWS Lambda resources. The company wants to allow employees to access the AWS Management Console by using existing credentials that the company stores and manages in an on-premises Microsoft Active Directory. Each employee must have a specific level of access to the AWS resources that is based on the employee’s role.
 
@@ -407,7 +415,7 @@ Which solution will meet these requirements with the LEAST operational overhead?
   A
 </details>
 
-***
+---
 
 502. A company generates SSL certificates from a third-party provider. The company imports the certificates into AWS Certificate Manager (ACM) to use with public web applications.
 
@@ -425,17 +433,17 @@ Which solution will provide the security team with the required notification abo
   A
 </details>
 
-***
+---
 
 507. A developer has implemented an AWS Lambda function that inserts new customers into an Amazon RDS database. The function is expected to run hundreds of times each hour. The function and RDS database are in the same VPC. The function is configured to use 512 MB of RAM and is based on the following pseudo code:
      <code>
-      def lambda_handler(event, context):
-          db = database.connect()
-          db.statement('INSERT INTO Customers (CustomerName) VALUES (event.name)')
-          db.execute()
-          db.close()
+     def lambda_handler(event, context):
+     db = database.connect()
+     db.statement('INSERT INTO Customers (CustomerName) VALUES (event.name)')
+     db.execute()
+     db.close()
      </code>
-     
+
 After successfully testing the function multiple times, the developer notices that the execution time is longer than expected.
 
 What should the developer do to improve performance?
@@ -450,7 +458,7 @@ What should the developer do to improve performance?
   C
 </details>
 
-***
+---
 
 519. A developer is writing a mobile application that allows users to view images from an S3 bucket. The users must be able to log in with their Amazon login, as well as supported social media accounts.
 
@@ -466,7 +474,7 @@ How can the developer provide this authentication functionality?
   A
 </details>
 
-****
+---
 
 525. A development team is designing a mobile app that requires multi-factor authentication.
 
@@ -483,8 +491,7 @@ Which steps should be taken to achieve this? (Choose two.)
   A, C
 </details>
 
-****
-
+---
 
 535. A developer needs to automate deployments for a serverless, event-based workload. The developer needs to create standardized templates to define the infrastructure and to test the functionality of the workload locally before deployment
 
@@ -502,7 +509,7 @@ Which solution will meet these requirements?
   A
 </details>
 
-****
+---
 
 543. A company has an AWS Step Functions state machine named myStateMachine. The company configured a service role for Step Functions.
 
@@ -552,7 +559,8 @@ Which statement should the developer add to the trust policy to meet this requir
   A
 </details>
 
-***
+---
+
 547. A developer is designing an event-driven architecture. An AWS Lambda function that processes data needs to push processed data to a subset of four consumer Lambda functions. The data must be routed based on the value of one field in the data.
 
 Which solution will meet these requirements with the LEAST operational overhead?
@@ -567,11 +575,12 @@ Which solution will meet these requirements with the LEAST operational overhead?
   D
 </details>
 
-***
+---
 
 548. A developer is creating a new application that will give users the ability to upload documents to Amazon S3. The contents of the documents must not be accessible to any third party.
 
 Which type of encryption will meet this requirement?
+
 <ol type="A">
  <li>Client-side encryption by using the S3 Encryption Client with a Raw RSA wrapping key that is stored on the user’s device</li>
  <li>Server-side encryption with S3 managed keys (SSE-S3)</li>
@@ -582,13 +591,14 @@ Which type of encryption will meet this requirement?
   C
 </details>
 
-***
+---
 
 554. A developer has an application that runs in AWS Account A. The application must retrieve an AWS Secrets Manager secret that is encrypted by an AWS Key Management Service (AWS KMS) key from AWS Account B. The application’s role has permissions to access the secret in Account B.
 
 The developer must add a statement to the KMS key’s key policy to allow the role in Account A to use the KMS key in Account B. The permissions must grant least privilege access to the role.
 
 Which permissions will meet these requirements?
+
 <ol type="A">
  <li>kms:Decrypt and kms:DescribeKey</li>
  <li>secretsmanager:DescribeSecret and secretsmanager:GetSecretValue</li>
@@ -599,4 +609,4 @@ Which permissions will meet these requirements?
   A
 </details>
 
-***
+---

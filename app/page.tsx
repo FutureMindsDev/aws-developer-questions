@@ -47,7 +47,7 @@ export default function HomePage() {
         setLoading(false);
       }
     },
-    []
+    [],
   );
 
   React.useEffect(() => {

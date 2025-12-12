@@ -1,22 +1,28 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { useAuth } from "@/components/auth-provider"
-import { Lock } from "lucide-react"
+import * as React from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { useAuth } from "@/components/auth-provider";
+import { Lock } from "lucide-react";
 
 export default function LoginPage() {
-  const [password, setPassword] = React.useState("")
-  const { login } = useAuth()
+  const [password, setPassword] = React.useState("");
+  const { login } = useAuth();
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    login(password)
-  }
+    e.preventDefault();
+    login(password);
+  };
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -32,7 +38,9 @@ export default function LoginPage() {
             </div>
           </div>
           <CardTitle className="text-2xl text-center">Welcome Back</CardTitle>
-          <CardDescription className="text-center">Enter your password to access the application</CardDescription>
+          <CardDescription className="text-center">
+            Enter your password to access the application
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -56,5 +64,5 @@ export default function LoginPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
