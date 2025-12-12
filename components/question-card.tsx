@@ -55,7 +55,7 @@ export function QuestionCard({ question }: QuestionCardProps) {
               : "animate-out fade-out-0 slide-out-to-top-2 opacity-0 max-h-0 overflow-hidden"
           }`}
           style={{
-            animationFillMode: showAnswer ? 'forwards' : 'backwards'
+            animationFillMode: showAnswer ? "forwards" : "backwards",
           }}
         >
           <div className="font-semibold text-sm">Answer:</div>

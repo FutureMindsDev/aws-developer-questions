@@ -379,7 +379,7 @@ export default function AdminPage() {
                       <Button
                         variant={
                           formData.answer?.includes(
-                            String.fromCharCode(65 + idx)
+                            String.fromCharCode(65 + idx),
                           )
                             ? "default"
                             : "outline"
@@ -406,14 +406,14 @@ export default function AdminPage() {
                         }}
                         className={`h-10 w-10 rounded-md border flex items-center justify-center ${
                           formData.answer?.includes(
-                            String.fromCharCode(65 + idx)
+                            String.fromCharCode(65 + idx),
                           )
                             ? "text-primary-foreground"
                             : "border-input"
                         }`}
                       >
                         {formData.answer?.includes(
-                          String.fromCharCode(65 + idx)
+                          String.fromCharCode(65 + idx),
                         ) && <CheckIcon className="h-5 w-5" />}
                       </Button>
                     </div>

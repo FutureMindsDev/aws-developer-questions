@@ -1,31 +1,31 @@
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
-import type React from "react"
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+import type React from "react";
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
 export function parseTextWithCode(text: string): React.ReactNode[] {
-  const parts: React.ReactNode[] = []
-  const codeRegex = /<code>(.*?)<\/code>/gs
-  let lastIndex = 0
-  let match
-  let keyCounter = 0
+  const parts: React.ReactNode[] = [];
+  const codeRegex = /<code>(.*?)<\/code>/gs;
+  let lastIndex = 0;
+  let match;
+  let keyCounter = 0;
 
-  codeRegex.lastIndex = 0
+  codeRegex.lastIndex = 0;
 
   while ((match = codeRegex.exec(text)) !== null) {
     // Add text before code block
     if (match.index > lastIndex) {
-      const textBefore = text.substring(lastIndex, match.index)
+      const textBefore = text.substring(lastIndex, match.index);
       if (textBefore) {
-        parts.push(<span key={`text-${keyCounter++}`}>{textBefore}</span>)
+        parts.push(<span key={`text-${keyCounter++}`}>{textBefore}</span>);
       }
     }
 
-    const codeContent = match[1]
-    const codeLines = codeContent.split("\n")
+    const codeContent = match[1];
+    const codeLines = codeContent.split("\n");
 
     parts.push(
       <code
@@ -39,17 +39,17 @@ export function parseTextWithCode(text: string): React.ReactNode[] {
           </span>
         ))}
       </code>,
-    )
-    lastIndex = match.index + match[0].length
+    );
+    lastIndex = match.index + match[0].length;
   }
 
   // Add remaining text
   if (lastIndex < text.length) {
-    const remainingText = text.substring(lastIndex)
+    const remainingText = text.substring(lastIndex);
     if (remainingText) {
-      parts.push(<span key={`text-${keyCounter++}`}>{remainingText}</span>)
+      parts.push(<span key={`text-${keyCounter++}`}>{remainingText}</span>);
     }
   }
 
-  return parts.length > 0 ? parts : [text]
+  return parts.length > 0 ? parts : [text];
 }

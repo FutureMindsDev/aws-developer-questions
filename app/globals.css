@@ -110,13 +110,16 @@
     @apply bg-background text-foreground;
   }
   /* Optimize animations during theme transitions */
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     transition-property: background-color, border-color, color, fill, stroke;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     transition-duration: 150ms;
   }
   /* Preserve animations during theme changes */
-  .animate-in, .animate-out {
+  .animate-in,
+  .animate-out {
     animation-duration: 300ms !important;
     animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
   }
