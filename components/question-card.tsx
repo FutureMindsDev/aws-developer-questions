@@ -3,7 +3,6 @@
 import * as React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronUp } from "lucide-react";
 import type { Question } from "@/lib/types";
 import { parseTextWithCode } from "@/lib/utils";
 
@@ -14,6 +13,15 @@ interface QuestionCardProps {
 
 export function QuestionCard({ question }: QuestionCardProps) {
   const [showAnswer, setShowAnswer] = React.useState(false);
+
+  // Convert answer string to array of indices (e.g., "A, C" -> [0, 2])
+  const correctAnswerIndices = React.useMemo(() => {
+    if (!question.answer) return [];
+    return question.answer
+      .split(",")
+      .map((a) => a.trim().toUpperCase().charCodeAt(0) - 65) // Convert A->0, B->1, etc.
+      .filter((idx) => idx >= 0 && idx < question.options.length);
+  }, [question.answer, question.options]);
 
   return (
     <Card className="border-border">
@@ -27,7 +35,11 @@ export function QuestionCard({ question }: QuestionCardProps) {
           {question.options.map((option, idx) => (
             <div
               key={idx}
-              className="rounded-md bg-muted px-4 py-2 text-sm font-mono"
+              className={`rounded-md px-4 py-2 text-sm font-mono transition-colors ${
+                showAnswer && correctAnswerIndices.includes(idx)
+                  ? "bg-primary/10 border border-primary text-primary"
+                  : "bg-muted"
+              }`}
             >
               {parseTextWithCode(option)}
             </div>
@@ -38,39 +50,19 @@ export function QuestionCard({ question }: QuestionCardProps) {
           variant="outline"
           size="sm"
           onClick={() => setShowAnswer(!showAnswer)}
-          className="w-full justify-between"
+          className="justify-between"
         >
           <span>{showAnswer ? "Hide" : "Show"} Answer</span>
-          {showAnswer ? (
-            <ChevronUp className="h-4 w-4" />
-          ) : (
-            <ChevronDown className="h-4 w-4" />
-          )}
         </Button>
 
-        <div
-          className={`space-y-2 rounded-md border border-border bg-accent p-4 transition-all duration-300 ease-out ${
-            showAnswer
-              ? "animate-in slide-in-from-top-2 opacity-100 max-h-96"
-              : "animate-out fade-out-0 slide-out-to-top-2 opacity-0 max-h-0 overflow-hidden"
-          }`}
-          style={{
-            animationFillMode: showAnswer ? "forwards" : "backwards",
-          }}
-        >
-          <div className="font-semibold text-sm">Answer:</div>
-          <div className="font-mono text-sm text-primary">
-            {question.answer}
+        {showAnswer && question.explanation && (
+          <div className="space-y-2 rounded-md border border-border bg-accent p-4 animate-in fade-in">
+            <div className="font-semibold text-sm">Explanation:</div>
+            <div className="text-sm leading-relaxed">
+              {parseTextWithCode(question.explanation)}
+            </div>
           </div>
-          {question.explanation && (
-            <>
-              <div className="font-semibold text-sm mt-3">Explanation:</div>
-              <div className="text-sm leading-relaxed">
-                {parseTextWithCode(question.explanation)}
-              </div>
-            </>
-          )}
-        </div>
+        )}
       </CardContent>
     </Card>
   );
