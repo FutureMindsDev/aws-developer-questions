@@ -7,8 +7,16 @@ export async function PUT(
 ) {
   try {
     const body = await request.json();
-    const { question, options, answer, explanation, number, adminPassword } =
-      body;
+    const {
+      question,
+      options,
+      answer,
+      explanation,
+      number,
+      approved,
+      linkUrl,
+      adminPassword,
+    } = body;
 
     // Verify admin password
     if (adminPassword !== process.env.NEXT_PUBLIC_ADMIN_PASSWORD) {
@@ -16,16 +24,21 @@ export async function PUT(
     }
 
     const db = await getDatabase();
+
+    const updateFields: Record<string, unknown> = {};
+
+    if (question !== undefined) updateFields.question = question;
+    if (options !== undefined) updateFields.options = options;
+    if (answer !== undefined) updateFields.answer = answer;
+    if (explanation !== undefined) updateFields.explanation = explanation || "";
+    if (number !== undefined) updateFields.number = number;
+    if (approved !== undefined) updateFields.approved = approved;
+    if (linkUrl !== undefined) updateFields.linkUrl = linkUrl;
+
     const result = await db.collection("questions").updateOne(
       { id: params.id },
       {
-        $set: {
-          question,
-          options,
-          answer,
-          explanation: explanation || "",
-          number: number,
-        },
+        $set: updateFields,
       },
     );
 

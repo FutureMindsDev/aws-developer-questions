@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
     const page = Number.parseInt(searchParams.get("page") || "1");
     const limit = Number.parseInt(searchParams.get("limit") || "10");
     const search = searchParams.get("search") || "";
+    const scope = searchParams.get("scope") || "all";
     const skip = (page - 1) * limit;
 
     const db = await getDatabase();
@@ -24,9 +25,27 @@ export async function GET(request: NextRequest) {
         }
       : {};
 
+    const filters: Record<string, unknown>[] = [];
+
+    if (Object.keys(searchFilter).length > 0) {
+      filters.push(searchFilter);
+    }
+
+    if (scope === "public") {
+      // Public view: only show approved questions or legacy ones without the approved field
+      filters.push({
+        $or: [{ approved: true }, { approved: { $exists: false } }],
+      });
+    } else if (scope === "pending") {
+      // Admin approval view: only unapproved questions
+      filters.push({ approved: false });
+    }
+
+    const finalFilter = filters.length > 0 ? { $and: filters } : {};
+
     const questions = await db
       .collection<Question>("questions")
-      .find(searchFilter)
+      .find(finalFilter)
       .sort({ number: -1, order: 1 })
       .skip(skip)
       .limit(limit)
@@ -34,7 +53,7 @@ export async function GET(request: NextRequest) {
 
     const total = await db
       .collection<Question>("questions")
-      .countDocuments(searchFilter);
+      .countDocuments(finalFilter);
 
     return NextResponse.json({
       data: questions,
@@ -55,8 +74,15 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { question, options, answer, explanation, number, adminPassword } =
-      body;
+    const {
+      question,
+      options,
+      answer,
+      explanation,
+      number,
+      adminPassword,
+      linkUrl,
+    } = body;
 
     if (adminPassword !== process.env.NEXT_PUBLIC_ADMIN_PASSWORD) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -71,6 +97,8 @@ export async function POST(request: NextRequest) {
       explanation: explanation || "",
       number: number,
       createdAt: new Date(),
+      approved: true,
+      linkUrl,
     };
 
     const result = await db.collection("questions").insertOne(newQuestion);
