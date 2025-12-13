@@ -7,6 +7,8 @@ export interface Question {
   category?: string;
   number?: number;
   createdAt?: Date;
+  approved?: boolean;
+  linkUrl?: string;
 }
 
 export interface AuthState {
