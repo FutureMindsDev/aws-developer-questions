@@ -1,15 +1,16 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { QuestionCard } from "@/components/question-card";
 import { Pagination } from "@/components/pagination";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { ExamTypeSelector } from "@/components/exam-type-selector";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/components/auth-provider";
 import { LogOut, Search, Shield } from "lucide-react";
-import type { Question, PaginatedResponse } from "@/lib/types";
+import type { Question, PaginatedResponse, ExamType } from "@/lib/types";
 import { toast } from "@/hooks/use-toast";
 import { PublicSubmitModal } from "@/components/home/public-submit-modal";
 
@@ -23,9 +24,13 @@ export default function HomePage() {
     limit: 10,
     totalPages: 0,
   });
+  const [examTypes, setExamTypes] = React.useState<ExamType[]>([]);
   const [searchQuery, setSearchQuery] = React.useState("");
+  const [selectedExamType, setSelectedExamType] =
+    React.useState<string>("aws-developer");
   const [currentPage, setCurrentPage] = React.useState(1);
   const [loading, setLoading] = React.useState(true);
+  const [examTypesLoading, setExamTypesLoading] = React.useState(true);
   const [showSubmitForm, setShowSubmitForm] = React.useState(false);
   const [submitFormData, setSubmitFormData] = React.useState({
     question: "",
@@ -45,9 +50,10 @@ export default function HomePage() {
   const [submitting, setSubmitting] = React.useState(false);
   const { isAdmin, logout } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const fetchQuestions = React.useCallback(
-    async (page: number, search: string) => {
+    async (page: number, search: string, examType?: string | null) => {
       setLoading(true);
       try {
         const params = new URLSearchParams({
@@ -55,6 +61,7 @@ export default function HomePage() {
           limit: "10",
           scope: "public",
           ...(search && { search }),
+          ...(examType && { examType }),
         });
         const response = await fetch(`/api/questions?${params}`);
         if (response.ok) {
@@ -70,20 +77,72 @@ export default function HomePage() {
     [],
   );
 
+  const fetchExamTypes = React.useCallback(async () => {
+    setExamTypesLoading(true);
+    try {
+      const response = await fetch("/api/exam-types");
+      if (response.ok) {
+        const data = await response.json();
+        setExamTypes(data);
+      }
+    } catch (error) {
+      console.error("[v0] Error fetching exam types:", error);
+    } finally {
+      setExamTypesLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    fetchExamTypes();
+  }, [fetchExamTypes]);
+
+  React.useEffect(() => {
+    // Initialize from URL parameters or localStorage
+    const urlExamType = searchParams.get("examType");
+    const storedExamType =
+      typeof window !== "undefined"
+        ? localStorage.getItem("selectedExamType")
+        : null;
+
+    // Use stored exam type first, then URL, then default
+    const finalExamType = storedExamType || urlExamType || "aws-developer";
+    setSelectedExamType(finalExamType);
+
+    // Update localStorage if different from stored
+    if (storedExamType !== finalExamType && typeof window !== "undefined") {
+      localStorage.setItem("selectedExamType", finalExamType);
+    }
+  }, [searchParams, fetchExamTypes]);
+
   React.useEffect(() => {
     const timer = setTimeout(() => {
-      setCurrentPage(1); // Reset to page 1 when searching
-      fetchQuestions(1, searchQuery);
+      setCurrentPage(1); // Reset to page 1 when searching or changing exam type
+      fetchQuestions(1, searchQuery, selectedExamType);
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [searchQuery, fetchQuestions]);
+  }, [searchQuery, selectedExamType, fetchQuestions]);
 
   React.useEffect(() => {
-    if (currentPage !== 1 || searchQuery === "") {
-      fetchQuestions(currentPage, searchQuery);
+    if (currentPage !== 1 || (searchQuery === "" && !selectedExamType)) {
+      fetchQuestions(currentPage, searchQuery, selectedExamType);
     }
-  }, [currentPage, searchQuery, fetchQuestions]);
+  }, [currentPage, searchQuery, selectedExamType, fetchQuestions]);
+
+  const handleExamTypeChange = (examType: string) => {
+    setSelectedExamType(examType);
+    setCurrentPage(1);
+
+    // Update localStorage
+    if (typeof window !== "undefined") {
+      localStorage.setItem("selectedExamType", examType);
+    }
+
+    // Update URL without full page reload
+    const url = new URL(window.location.href);
+    url.searchParams.set("examType", examType);
+    window.history.pushState({}, "", url.toString());
+  };
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -188,24 +247,19 @@ export default function HomePage() {
       <header className="sticky top-0 z-50 border-b border-border bg-card">
         <div className="container mx-auto flex h-14 items-center justify-between px-4">
           <div className="flex items-center gap-2">
-            <h1 className="text-lg font-semibold">AWS Developer Q&A</h1>
+            {!examTypesLoading && examTypes.length > 0 && (
+              <ExamTypeSelector
+                examTypes={examTypes}
+                selectedExamType={selectedExamType}
+                onExamTypeChange={handleExamTypeChange}
+              />
+            )}
           </div>
           <div className="flex items-center gap-2">
-            {isAdmin && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => router.push("/admin")}
-              >
-                <Shield className="h-4 w-4 mr-2" />
-                Admin Dashboard
-              </Button>
-            )}
             <ThemeToggle />
             {isAdmin && (
               <Button variant="ghost" size="sm" onClick={logout}>
-                <LogOut className="h-4 w-4 mr-2" />
-                Logout
+                <LogOut className="h-4 w-4" />
               </Button>
             )}
           </div>
@@ -237,7 +291,7 @@ export default function HomePage() {
               ? "Loading..."
               : `${paginatedData.total} question${
                   paginatedData.total !== 1 ? "s" : ""
-                } found`}
+                } found${selectedExamType ? ` for ${examTypes.find((e) => e.name === selectedExamType)?.displayName || selectedExamType}` : ""}`}
           </div>
           {!loading && paginatedData.totalPages > 1 && (
             <div className="mt-8">

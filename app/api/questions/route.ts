@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
     const limit = Number.parseInt(searchParams.get("limit") || "10");
     const search = searchParams.get("search") || "";
     const scope = searchParams.get("scope") || "all";
+    const examType = searchParams.get("examType") || "";
     const skip = (page - 1) * limit;
 
     const db = await getDatabase();
@@ -29,6 +30,10 @@ export async function GET(request: NextRequest) {
 
     if (Object.keys(searchFilter).length > 0) {
       filters.push(searchFilter);
+    }
+
+    if (examType) {
+      filters.push({ examType });
     }
 
     if (scope === "public") {
@@ -82,6 +87,7 @@ export async function POST(request: NextRequest) {
       number,
       adminPassword,
       linkUrl,
+      examType,
     } = body;
 
     if (adminPassword !== process.env.NEXT_PUBLIC_ADMIN_PASSWORD) {
@@ -99,6 +105,7 @@ export async function POST(request: NextRequest) {
       createdAt: new Date(),
       approved: true,
       linkUrl,
+      examType: examType || "aws-developer", // Default to aws-developer for backward compatibility
     };
 
     const result = await db.collection("questions").insertOne(newQuestion);

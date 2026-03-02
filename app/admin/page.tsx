@@ -7,10 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useAuth } from "@/components/auth-provider";
-import type { Question, PaginatedResponse } from "@/lib/types";
+import type { Question, PaginatedResponse, ExamType } from "@/lib/types";
 import { LogOut, X, Lock } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { QuestionForm } from "@/components/ui/question-form";
+import type { QuestionFormData } from "@/components/ui/question-form";
+import { ExamTypeSelector } from "@/components/exam-type-selector";
 import { AdminQuestionList } from "@/components/admin/admin-question-list";
 import { PendingApprovalsList } from "@/components/admin/pending-approvals-list";
 
@@ -24,6 +26,10 @@ export default function AdminPage() {
     limit: 10,
     totalPages: 0,
   });
+  const [examTypes, setExamTypes] = React.useState<ExamType[]>([]);
+  const [examTypesLoading, setExamTypesLoading] = React.useState(true);
+  const [selectedExamType, setSelectedExamType] =
+    React.useState<string>("aws-developer");
   const [currentPage, setCurrentPage] = React.useState(1);
   const [pendingData, setPendingData] = React.useState<
     PaginatedResponse<Question>
@@ -44,6 +50,7 @@ export default function AdminPage() {
     explanation: "",
     number: "",
     linkUrl: "",
+    examType: "aws-developer",
   });
   const [errors, setErrors] = React.useState({
     question: "",
@@ -69,6 +76,7 @@ export default function AdminPage() {
           limit: "10",
           scope: "public",
           ...(searchQuery && { search: searchQuery }),
+          examType: selectedExamType,
         });
         const response = await fetch(`/api/questions?${params}`);
         if (response.ok) {
@@ -82,7 +90,7 @@ export default function AdminPage() {
         setIsLoading(false);
       }
     },
-    [searchQuery],
+    [searchQuery, selectedExamType],
   );
 
   const fetchPendingQuestions = React.useCallback(async (page: number) => {
@@ -106,12 +114,37 @@ export default function AdminPage() {
     }
   }, []);
 
+  const fetchExamTypes = React.useCallback(async () => {
+    setExamTypesLoading(true);
+    try {
+      const response = await fetch("/api/exam-types");
+      if (response.ok) {
+        const data = await response.json();
+        setExamTypes(data);
+      }
+    } catch (error) {
+      console.error("[v0] Error fetching exam types:", error);
+      toast({ title: "Failed to fetch exam types", variant: "destructive" });
+    } finally {
+      setExamTypesLoading(false);
+    }
+  }, []);
+
   React.useEffect(() => {
     if (!isAdmin) {
       return;
     }
     fetchQuestions(currentPage);
-  }, [isAdmin, currentPage, fetchQuestions]);
+    fetchExamTypes();
+  }, [isAdmin, currentPage, fetchQuestions, fetchExamTypes]);
+
+  React.useEffect(() => {
+    // Refetch questions when exam type changes
+    if (isAdmin && selectedExamType) {
+      setCurrentPage(1); // Reset to page 1
+      fetchQuestions(1);
+    }
+  }, [selectedExamType, fetchQuestions, isAdmin]);
 
   React.useEffect(() => {
     if (!isAdmin || activeTab !== "approvals") {
@@ -213,6 +246,7 @@ export default function AdminPage() {
         explanation: "",
         number: "",
         linkUrl: "",
+        examType: "aws-developer",
       });
       setErrors({
         question: "",
@@ -238,6 +272,7 @@ export default function AdminPage() {
       explanation: question.explanation || "",
       number: question.number?.toString() || "",
       linkUrl: question.linkUrl || "",
+      examType: question.examType || "aws-developer",
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -310,6 +345,13 @@ export default function AdminPage() {
     }
   };
 
+  const handleFormChange = (data: QuestionFormData) => {
+    setFormData({
+      ...data,
+      examType: data.examType || "aws-developer",
+    });
+  };
+
   const handleCancel = () => {
     setEditingId(null);
     setShowCodeHelper(false);
@@ -320,6 +362,7 @@ export default function AdminPage() {
       explanation: "",
       number: "",
       linkUrl: "",
+      examType: "aws-developer",
     });
     setErrors({
       question: "",
@@ -384,12 +427,19 @@ export default function AdminPage() {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 border-b border-border bg-card">
         <div className="container mx-auto flex h-14 items-center justify-between px-4">
-          <h1 className="text-lg font-semibold">Admin Dashboard</h1>
+          <div className="flex items-center gap-4">
+            {!examTypesLoading && examTypes.length > 0 && (
+              <ExamTypeSelector
+                examTypes={examTypes}
+                selectedExamType={selectedExamType}
+                onExamTypeChange={setSelectedExamType}
+              />
+            )}
+          </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
             <Button variant="ghost" size="sm" onClick={logout}>
               <LogOut className="h-4 w-4 mr-2" />
-              Logout
             </Button>
           </div>
         </div>
@@ -472,7 +522,8 @@ export default function AdminPage() {
                 formData={formData}
                 errors={errors}
                 onSubmit={handleSubmit}
-                onChange={setFormData}
+                onChange={handleFormChange}
+                examTypes={examTypes}
                 submitLabel={editingId ? "Update Question" : "Add Question"}
               />
             </CardContent>
