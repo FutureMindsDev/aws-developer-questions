@@ -6,3 +6,8 @@ node_modules
 .pnpm-store
 dist
 *.log
+
+# Ignore lockfiles
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
