@@ -9,6 +9,16 @@ export interface Question {
   createdAt?: Date;
   approved?: boolean;
   linkUrl?: string;
+  examType?: string;
+}
+
+export interface ExamType {
+  id: string;
+  name: string;
+  displayName: string;
+  description?: string;
+  createdAt?: Date;
+  active?: boolean;
 }
 
 export interface AuthState {

@@ -2,15 +2,24 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { CheckIcon } from "lucide-react";
+import type { ExamType } from "@/lib/types";
 
-interface QuestionFormData {
+export interface QuestionFormData {
   question: string;
   options: string[];
   answer: string;
   explanation: string;
   number: string;
   linkUrl: string;
+  examType?: string;
 }
 
 interface QuestionFormErrors {
@@ -26,6 +35,7 @@ interface QuestionFormProps {
   errors: QuestionFormErrors;
   onSubmit: (e: React.FormEvent) => void;
   onChange: (data: QuestionFormData) => void;
+  examTypes?: ExamType[];
 }
 
 export function QuestionForm({
@@ -33,10 +43,35 @@ export function QuestionForm({
   errors,
   onSubmit,
   onChange,
+  examTypes = [],
   submitLabel = "Submit",
 }: QuestionFormProps & { submitLabel?: string }) {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="examType">Exam Type</Label>
+        <Select
+          value={formData.examType || "aws-developer"}
+          onValueChange={(value) =>
+            onChange({
+              ...formData,
+              examType: value,
+            })
+          }
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select exam type" />
+          </SelectTrigger>
+          <SelectContent>
+            {examTypes.map((examType) => (
+              <SelectItem key={examType.id} value={examType.name}>
+                {examType.displayName}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       <div className="space-y-2">
         <Label htmlFor="number">
           Number <span className="text-destructive">*</span>

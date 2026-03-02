@@ -5,7 +5,15 @@ import type { Question } from "@/lib/types";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { question, options, answer, explanation, number, linkUrl } = body;
+    const {
+      question,
+      options,
+      answer,
+      explanation,
+      number,
+      linkUrl,
+      examType,
+    } = body;
 
     if (!question || !answer || !linkUrl) {
       return NextResponse.json(
@@ -24,6 +32,7 @@ export async function POST(request: NextRequest) {
       explanation: explanation || "",
       number,
       linkUrl,
+      examType: examType || "aws-developer", // Default to aws-developer for backward compatibility
       approved: false,
       createdAt: new Date(),
     };
