@@ -59,7 +59,7 @@ export function QuestionForm({
             })
           }
         >
-          <SelectTrigger>
+          <SelectTrigger className="dark:bg-input/30 bg-transparent">
             <SelectValue placeholder="Select exam type" />
           </SelectTrigger>
           <SelectContent>
@@ -78,7 +78,6 @@ export function QuestionForm({
         </Label>
         <Input
           id="number"
-          type="number"
           placeholder="Question number (for sorting)"
           value={formData.number}
           onChange={(e) =>
