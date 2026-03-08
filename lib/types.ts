@@ -1,8 +1,14 @@
+export type AnswerType = "single_choice" | "string";
+export type AnswerSubType = "string" | "photo";
+
 export interface Question {
+  _id?: string;
   id: string;
   question: string;
-  options: string[];
+  options?: string[];
   answer: string;
+  answerType?: AnswerType;
+  answerSubType?: AnswerSubType;
   explanation?: string;
   category?: string;
   number?: number;

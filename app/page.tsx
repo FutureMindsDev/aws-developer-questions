@@ -316,7 +316,10 @@ export default function HomePage() {
             </div>
           ) : (
             paginatedData.data.map((question, index) => (
-              <QuestionCard key={index} question={question} />
+              <QuestionCard
+                key={question._id ?? question.id ?? index}
+                question={question}
+              />
             ))
           )}
         </div>

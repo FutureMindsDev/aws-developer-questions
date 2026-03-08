@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     const db = await getDatabase();
 
     const newQuestion: Omit<Question, "_id"> = {
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       question,
       options: options || [],
       answer,
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     const result = await db.collection("questions").insertOne(newQuestion);
 
     return NextResponse.json(
-      { ...newQuestion, _id: result.insertedId },
+      { ...newQuestion, _id: result.insertedId.toString() },
       { status: 201 },
     );
   } catch (error) {
