@@ -392,6 +392,23 @@ export function QuestionForm({
           {errors.answer && (
             <p className="text-sm text-destructive">{errors.answer}</p>
           )}
+          {(formData.options?.length || 0) < 5 && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const currentOptions = formData.options || [];
+                const newOptions = [...currentOptions, ""];
+                onChange({
+                  ...formData,
+                  options: newOptions,
+                });
+              }}
+            >
+              + Add another choice
+            </Button>
+          )}
         </div>
       )}
 
