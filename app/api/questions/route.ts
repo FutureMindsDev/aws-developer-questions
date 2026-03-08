@@ -56,12 +56,19 @@ export async function GET(request: NextRequest) {
       .limit(limit)
       .toArray();
 
+    const serializedQuestions = questions.map((q) => ({
+      ...q,
+      // MongoDB returns ObjectId; convert it to a string for React keys / JSON
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      _id: (q as any)?._id?.toString?.() ?? (q as any)?._id,
+    })) as Question[];
+
     const total = await db
       .collection<Question>("questions")
       .countDocuments(finalFilter);
 
     return NextResponse.json({
-      data: questions,
+      data: serializedQuestions,
       total,
       page,
       limit,
@@ -83,6 +90,8 @@ export async function POST(request: NextRequest) {
       question,
       options,
       answer,
+      answerType,
+      answerSubType,
       explanation,
       number,
       adminPassword,
@@ -96,10 +105,12 @@ export async function POST(request: NextRequest) {
 
     const db = await getDatabase();
     const newQuestion: Omit<Question, "_id"> = {
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       question,
-      options,
+      options: answerType === "single_choice" ? options : undefined,
       answer,
+      answerType: answerType || "single_choice",
+      answerSubType: answerType === "single_choice" ? answerSubType : undefined,
       explanation: explanation || "",
       number: number,
       createdAt: new Date(),
@@ -110,7 +121,10 @@ export async function POST(request: NextRequest) {
 
     const result = await db.collection("questions").insertOne(newQuestion);
 
-    return NextResponse.json({ ...newQuestion, _id: result.insertedId });
+    return NextResponse.json({
+      ...newQuestion,
+      _id: result.insertedId.toString(),
+    });
   } catch (error) {
     console.error("[v0] Error creating question:", error);
     return NextResponse.json(

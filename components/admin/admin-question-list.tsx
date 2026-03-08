@@ -100,7 +100,7 @@ export function AdminQuestionList({
             );
 
             return (
-              <Card key={question.id ?? index}>
+              <Card key={question._id ?? question.id ?? index}>
                 <CardHeader>
                   <CardTitle className="text-base font-semibold leading-relaxed flex items-start justify-between">
                     <span>
@@ -130,6 +130,9 @@ export function AdminQuestionList({
                 <CardContent className="space-y-2">
                   {question.options?.map((option, idx) => {
                     const isCorrect = correctAnswerIndices.includes(idx);
+                    const value =
+                      typeof option === "string" ? option.trim() : "";
+                    const isImage = value.startsWith("data:image/");
                     return (
                       <div
                         key={idx}
@@ -139,7 +142,15 @@ export function AdminQuestionList({
                             : "bg-muted"
                         }`}
                       >
-                        {parseTextWithCode(option)}
+                        {isImage ? (
+                          <img
+                            src={value}
+                            alt={`Option ${String.fromCharCode(65 + idx)}`}
+                            className="h-24 w-auto max-w-full object-cover rounded border"
+                          />
+                        ) : (
+                          parseTextWithCode(option)
+                        )}
                       </div>
                     );
                   })}
