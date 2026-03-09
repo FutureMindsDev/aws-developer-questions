@@ -63,6 +63,18 @@ export function PendingApprovalsList({
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
+                {question.questionImages && (
+                  <div className="space-y-2">
+                    {question.questionImages.map((image, idx) => (
+                      <img
+                        key={idx}
+                        src={image}
+                        alt={`Question Image ${idx + 1}`}
+                        className="h-24 w-auto max-w-full object-cover rounded border"
+                      />
+                    ))}
+                  </div>
+                )}
                 <div className="space-y-2">
                   {question.options?.map((option, idx) => {
                     const isCorrect = correctAnswerIndices.includes(idx);

@@ -43,14 +43,17 @@ export default function AdminPage() {
   const [pendingPage, setPendingPage] = React.useState(1);
   const [editingId, setEditingId] = React.useState<string | null>(null);
   const [showCodeHelper, setShowCodeHelper] = React.useState(false);
-  const [formData, setFormData] = React.useState({
+  const [formData, setFormData] = React.useState<QuestionFormData>({
     question: "",
+    questionImages: [],
     options: ["", "", "", "", ""],
     answer: "",
     explanation: "",
     number: "",
     linkUrl: "",
     examType: "aws-developer",
+    answerType: "single_choice",
+    answerSubType: "string",
   });
   const [errors, setErrors] = React.useState({
     question: "",
@@ -212,7 +215,9 @@ export default function AdminPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             ...formData,
-            options: formData.options.filter((option) => option.trim() !== ""),
+            options: (formData.options || []).filter(
+              (option) => option.trim() !== "",
+            ),
             number:
               formData.number === "" ? undefined : Number(formData.number),
             adminPassword: password,
@@ -228,7 +233,9 @@ export default function AdminPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             ...formData,
-            options: formData.options.filter((option) => option.trim() !== ""),
+            options: (formData.options || []).filter(
+              (option) => option.trim() !== "",
+            ),
             number:
               formData.number === "" ? undefined : Number(formData.number),
             adminPassword: password,
@@ -241,8 +248,11 @@ export default function AdminPage() {
 
       setFormData({
         question: "",
+        questionImages: [],
         options: ["", "", "", "", ""],
         answer: "",
+        answerType: "single_choice",
+        answerSubType: "string",
         explanation: "",
         number: "",
         linkUrl: "",
@@ -267,8 +277,11 @@ export default function AdminPage() {
     setEditingId(question.id);
     setFormData({
       question: question.question,
-      options: question.options,
+      questionImages: question.questionImages || [],
+      options: question.options || ["", "", "", "", ""],
       answer: question.answer,
+      answerType: question.answerType || "single_choice",
+      answerSubType: question.answerSubType,
       explanation: question.explanation || "",
       number: question.number?.toString() || "",
       linkUrl: question.linkUrl || "",
@@ -348,6 +361,8 @@ export default function AdminPage() {
   const handleFormChange = (data: QuestionFormData) => {
     setFormData({
       ...data,
+      questionImages: data.questionImages || [],
+      options: data.options || [],
       examType: data.examType || "aws-developer",
     });
   };
@@ -357,8 +372,11 @@ export default function AdminPage() {
     setShowCodeHelper(false);
     setFormData({
       question: "",
+      questionImages: [],
       options: ["", "", "", "", ""],
       answer: "",
+      answerType: "single_choice",
+      answerSubType: "string",
       explanation: "",
       number: "",
       linkUrl: "",

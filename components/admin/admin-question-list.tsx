@@ -126,6 +126,25 @@ export function AdminQuestionList({
                       </Button>
                     </div>
                   </CardTitle>
+                  {(question.questionImages?.length || 0) > 0 && (
+                    <div className="mt-3 space-y-2">
+                      {(question.questionImages || []).map((img, idx) => (
+                        <img
+                          key={`${idx}-${img.substring(0, 20)}`}
+                          src={img.trim()}
+                          alt={`Question photo ${idx + 1}`}
+                          className="w-full max-h-80 object-contain rounded border bg-muted"
+                          onError={(e) => {
+                            console.error(
+                              "Question image failed to load in admin list:",
+                              img.substring(0, 50) + "...",
+                            );
+                            e.currentTarget.style.display = "none";
+                          }}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </CardHeader>
                 <CardContent className="space-y-2">
                   {question.options?.map((option, idx) => {

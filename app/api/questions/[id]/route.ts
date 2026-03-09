@@ -9,6 +9,7 @@ export async function PUT(
     const body = await request.json();
     const {
       question,
+      questionImages,
       options,
       answer,
       explanation,
@@ -28,6 +29,8 @@ export async function PUT(
     const updateFields: Record<string, unknown> = {};
 
     if (question !== undefined) updateFields.question = question;
+    if (questionImages !== undefined)
+      updateFields.questionImages = questionImages;
     if (options !== undefined) updateFields.options = options;
     if (answer !== undefined) updateFields.answer = answer;
     if (explanation !== undefined) updateFields.explanation = explanation || "";

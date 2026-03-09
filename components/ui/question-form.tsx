@@ -14,6 +14,7 @@ import type { ExamType, AnswerType, AnswerSubType } from "@/lib/types";
 
 export interface QuestionFormData {
   question: string;
+  questionImages?: string[];
   options?: string[];
   answer: string;
   answerType?: AnswerType;
@@ -117,6 +118,70 @@ export function QuestionForm({
         {errors.question && (
           <p className="text-sm text-destructive">{errors.question}</p>
         )}
+
+        <div className="space-y-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const input = document.createElement("input");
+              input.type = "file";
+              input.accept = "image/*";
+              input.onchange = (e) => {
+                const file = (e.target as HTMLInputElement).files?.[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                  const base64 = event.target?.result as string;
+                  const current = formData.questionImages || [];
+                  onChange({
+                    ...formData,
+                    questionImages: [...current, base64],
+                  });
+                };
+                reader.readAsDataURL(file);
+              };
+              input.click();
+            }}
+          >
+            + Add a photo
+          </Button>
+
+          {(formData.questionImages?.length || 0) > 0 && (
+            <div className="grid grid-cols-1 gap-2">
+              {(formData.questionImages || []).map((img, idx) => (
+                <div
+                  key={`${idx}-${img.substring(0, 20)}`}
+                  className="relative"
+                >
+                  <img
+                    src={img.trim()}
+                    alt={`Question photo ${idx + 1}`}
+                    className="w-full h-40 object-cover rounded-md border"
+                  />
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="icon"
+                    className="absolute right-2 top-2 h-8 w-8"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      const current = formData.questionImages || [];
+                      const next = current.filter((_, i) => i !== idx);
+                      onChange({
+                        ...formData,
+                        questionImages: next,
+                      });
+                    }}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="space-y-2">

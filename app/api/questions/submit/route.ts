@@ -7,6 +7,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const {
       question,
+      questionImages,
       options,
       answer,
       explanation,
@@ -27,6 +28,10 @@ export async function POST(request: NextRequest) {
     const newQuestion: Omit<Question, "_id"> = {
       id: crypto.randomUUID(),
       question,
+      questionImages:
+        Array.isArray(questionImages) && questionImages.length > 0
+          ? questionImages
+          : undefined,
       options: options || [],
       answer,
       explanation: explanation || "",

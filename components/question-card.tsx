@@ -36,6 +36,25 @@ export function QuestionCard({ question }: QuestionCardProps) {
         <CardTitle className="text-base font-semibold leading-relaxed">
           {question.number || "Number"}. {parseTextWithCode(question.question)}
         </CardTitle>
+        {(question.questionImages?.length || 0) > 0 && (
+          <div className="mt-3 space-y-2">
+            {(question.questionImages || []).map((img, idx) => (
+              <img
+                key={`${idx}-${img.substring(0, 20)}`}
+                src={img.trim()}
+                alt={`Question photo ${idx + 1}`}
+                className="w-full max-h-80 object-contain rounded border bg-muted"
+                onError={(e) => {
+                  console.error(
+                    "Question image failed to load:",
+                    img.substring(0, 50) + "...",
+                  );
+                  e.currentTarget.style.display = "none";
+                }}
+              />
+            ))}
+          </div>
+        )}
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
