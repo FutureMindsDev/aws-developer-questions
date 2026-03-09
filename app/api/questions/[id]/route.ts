@@ -9,8 +9,11 @@ export async function PUT(
     const body = await request.json();
     const {
       question,
+      questionImages,
       options,
       answer,
+      answerType,
+      answerSubType,
       explanation,
       number,
       approved,
@@ -26,10 +29,24 @@ export async function PUT(
     const db = await getDatabase();
 
     const updateFields: Record<string, unknown> = {};
+    const unsetFields: Record<string, ""> = {};
 
     if (question !== undefined) updateFields.question = question;
+    if (questionImages !== undefined)
+      updateFields.questionImages = questionImages;
     if (options !== undefined) updateFields.options = options;
     if (answer !== undefined) updateFields.answer = answer;
+    if (answerType !== undefined) {
+      updateFields.answerType = answerType;
+      if (answerType === "string") {
+        unsetFields.options = "";
+        unsetFields.answerSubType = "";
+      }
+    }
+
+    if (answerSubType !== undefined) {
+      updateFields.answerSubType = answerSubType;
+    }
     if (explanation !== undefined) updateFields.explanation = explanation || "";
     if (number !== undefined) updateFields.number = number;
     if (approved !== undefined) updateFields.approved = approved;
@@ -39,6 +56,7 @@ export async function PUT(
       { id: params.id },
       {
         $set: updateFields,
+        ...(Object.keys(unsetFields).length > 0 ? { $unset: unsetFields } : {}),
       },
     );
 

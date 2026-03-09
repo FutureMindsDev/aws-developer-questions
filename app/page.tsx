@@ -32,8 +32,17 @@ export default function HomePage() {
   const [loading, setLoading] = React.useState(true);
   const [examTypesLoading, setExamTypesLoading] = React.useState(true);
   const [showSubmitForm, setShowSubmitForm] = React.useState(false);
-  const [submitFormData, setSubmitFormData] = React.useState({
+  const [submitFormData, setSubmitFormData] = React.useState<{
+    question: string;
+    questionImages: string[];
+    options: string[];
+    answer: string;
+    explanation: string;
+    number: string;
+    linkUrl: string;
+  }>({
     question: "",
+    questionImages: [],
     options: ["", "", "", "", ""],
     answer: "",
     explanation: "",
@@ -221,6 +230,7 @@ export default function HomePage() {
       setShowSubmitForm(false);
       setSubmitFormData({
         question: "",
+        questionImages: [],
         options: ["", "", "", "", ""],
         answer: "",
         explanation: "",

@@ -88,6 +88,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const {
       question,
+      questionImages,
       options,
       answer,
       answerType,
@@ -107,6 +108,10 @@ export async function POST(request: NextRequest) {
     const newQuestion: Omit<Question, "_id"> = {
       id: crypto.randomUUID(),
       question,
+      questionImages:
+        Array.isArray(questionImages) && questionImages.length > 0
+          ? questionImages
+          : undefined,
       options: answerType === "single_choice" ? options : undefined,
       answer,
       answerType: answerType || "single_choice",

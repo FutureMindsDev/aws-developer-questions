@@ -5,6 +5,7 @@ export interface Question {
   _id?: string;
   id: string;
   question: string;
+  questionImages?: string[];
   options?: string[];
   answer: string;
   answerType?: AnswerType;
