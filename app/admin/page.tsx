@@ -210,36 +210,50 @@ export default function AdminPage() {
 
     try {
       if (editingId) {
+        const payload: Record<string, unknown> = {
+          ...formData,
+          number: formData.number === "" ? undefined : Number(formData.number),
+          adminPassword: password,
+        };
+
+        if (formData.answerType === "single_choice") {
+          payload.options = (formData.options || []).filter(
+            (option) => option.trim() !== "",
+          );
+        } else {
+          delete payload.options;
+          delete payload.answerSubType;
+        }
+
         const response = await fetch(`/api/questions/${editingId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...formData,
-            options: (formData.options || []).filter(
-              (option) => option.trim() !== "",
-            ),
-            number:
-              formData.number === "" ? undefined : Number(formData.number),
-            adminPassword: password,
-          }),
+          body: JSON.stringify(payload),
         });
 
         if (!response.ok) throw new Error("Failed to update question");
         toast({ title: "Question updated successfully" });
         setEditingId(null);
       } else {
+        const payload: Record<string, unknown> = {
+          ...formData,
+          number: formData.number === "" ? undefined : Number(formData.number),
+          adminPassword: password,
+        };
+
+        if (formData.answerType === "single_choice") {
+          payload.options = (formData.options || []).filter(
+            (option) => option.trim() !== "",
+          );
+        } else {
+          delete payload.options;
+          delete payload.answerSubType;
+        }
+
         const response = await fetch("/api/questions", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...formData,
-            options: (formData.options || []).filter(
-              (option) => option.trim() !== "",
-            ),
-            number:
-              formData.number === "" ? undefined : Number(formData.number),
-            adminPassword: password,
-          }),
+          body: JSON.stringify(payload),
         });
 
         if (!response.ok) throw new Error("Failed to add question");

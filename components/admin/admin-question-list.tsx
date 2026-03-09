@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Pagination } from "@/components/pagination";
@@ -16,6 +17,146 @@ interface AdminQuestionListProps {
   onPageChange: (page: number) => void;
   onEdit: (question: Question) => void;
   onDelete: (id: string) => void;
+}
+
+function AdminQuestionListItem({
+  question,
+  displayNumber,
+  onEdit,
+  onDelete,
+}: {
+  question: Question;
+  displayNumber: string;
+  onEdit: (question: Question) => void;
+  onDelete: (id: string) => void;
+}) {
+  const [showAnswer, setShowAnswer] = React.useState(false);
+  const correctAnswerIndices = getCorrectAnswerIndices(
+    question.answer,
+    question.options?.length ?? 0,
+  );
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base font-semibold leading-relaxed flex items-start justify-between">
+          <span>
+            {displayNumber}
+            {parseTextWithCode(question.question)}
+          </span>
+          <div className="flex gap-2 ml-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onEdit(question)}
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onDelete(question.id)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardTitle>
+
+        {(question.questionImages?.length || 0) > 0 && (
+          <div className="mt-3 space-y-2">
+            {(question.questionImages || []).map((img, idx) => (
+              <img
+                key={`${idx}-${img.substring(0, 20)}`}
+                src={img.trim()}
+                alt={`Question photo ${idx + 1}`}
+                className="w-full max-h-80 object-contain rounded border bg-muted"
+                onError={(e) => {
+                  console.error(
+                    "Question image failed to load in admin list:",
+                    img.substring(0, 50) + "...",
+                  );
+                  e.currentTarget.style.display = "none";
+                }}
+              />
+            ))}
+          </div>
+        )}
+      </CardHeader>
+
+      <CardContent className="space-y-2">
+        {question.answerType !== "string" &&
+          question.options?.map((option, idx) => {
+            const isCorrect = correctAnswerIndices.includes(idx);
+            const value = typeof option === "string" ? option.trim() : "";
+            const isImage = value.startsWith("data:image/");
+            return (
+              <div
+                key={idx}
+                className={`rounded-md px-4 py-2 text-sm font-mono transition-colors ${
+                  showAnswer && isCorrect
+                    ? "bg-primary/10 border border-primary text-primary"
+                    : "bg-muted"
+                }`}
+              >
+                {isImage ? (
+                  <img
+                    src={value}
+                    alt={`Option ${String.fromCharCode(65 + idx)}`}
+                    className="h-24 w-auto max-w-full object-cover rounded border"
+                  />
+                ) : (
+                  parseTextWithCode(option)
+                )}
+              </div>
+            );
+          })}
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowAnswer(!showAnswer)}
+        >
+          {showAnswer ? "Hide" : "Show"} Answer
+        </Button>
+
+        {showAnswer && question.answerType === "string" && (
+          <div className="rounded-md px-4 py-2 text-sm font-mono bg-muted">
+            {parseTextWithCode(question.answer)}
+          </div>
+        )}
+
+        {showAnswer && question.answerType !== "string" && (
+          <div className="pt-2 text-sm">
+            <span className="font-semibold">Answer: </span>
+            <span className="font-mono text-primary">{question.answer}</span>
+          </div>
+        )}
+
+        {showAnswer && question.explanation && (
+          <div className="pt-2 text-sm">
+            <span className="font-semibold">Explanation: </span>
+            <span className="font-mono">
+              {parseTextWithCode(question.explanation)}
+            </span>
+          </div>
+        )}
+
+        {question.linkUrl && (
+          <p className="pt-2 text-sm">
+            <span className="font-semibold">Source: </span>
+            <a
+              href={question.linkUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="text-primary underline break-all"
+            >
+              {question.linkUrl}
+            </a>
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
 }
 
 function getCorrectAnswerIndices(
@@ -93,117 +234,19 @@ export function AdminQuestionList({
             </CardContent>
           </Card>
         ) : (
-          paginatedData.data.map((question, index) => {
-            const correctAnswerIndices = getCorrectAnswerIndices(
-              question.answer,
-              question.options?.length ?? 0,
-            );
-
-            return (
-              <Card key={question._id ?? question.id ?? index}>
-                <CardHeader>
-                  <CardTitle className="text-base font-semibold leading-relaxed flex items-start justify-between">
-                    <span>
-                      {question.number && question.number > 0
-                        ? `${question.number}.`
-                        : `${(currentPage - 1) * 10 + index + 1}.`}
-                      {parseTextWithCode(question.question)}
-                    </span>
-                    <div className="flex gap-2 ml-4">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onEdit(question)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onDelete(question.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardTitle>
-                  {(question.questionImages?.length || 0) > 0 && (
-                    <div className="mt-3 space-y-2">
-                      {(question.questionImages || []).map((img, idx) => (
-                        <img
-                          key={`${idx}-${img.substring(0, 20)}`}
-                          src={img.trim()}
-                          alt={`Question photo ${idx + 1}`}
-                          className="w-full max-h-80 object-contain rounded border bg-muted"
-                          onError={(e) => {
-                            console.error(
-                              "Question image failed to load in admin list:",
-                              img.substring(0, 50) + "...",
-                            );
-                            e.currentTarget.style.display = "none";
-                          }}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  {question.options?.map((option, idx) => {
-                    const isCorrect = correctAnswerIndices.includes(idx);
-                    const value =
-                      typeof option === "string" ? option.trim() : "";
-                    const isImage = value.startsWith("data:image/");
-                    return (
-                      <div
-                        key={idx}
-                        className={`rounded-md px-4 py-2 text-sm font-mono transition-colors ${
-                          isCorrect
-                            ? "bg-primary/10 border border-primary text-primary"
-                            : "bg-muted"
-                        }`}
-                      >
-                        {isImage ? (
-                          <img
-                            src={value}
-                            alt={`Option ${String.fromCharCode(65 + idx)}`}
-                            className="h-24 w-auto max-w-full object-cover rounded border"
-                          />
-                        ) : (
-                          parseTextWithCode(option)
-                        )}
-                      </div>
-                    );
-                  })}
-                  <div className="pt-2 text-sm">
-                    <span className="font-semibold">Answer: </span>
-                    <span className="font-mono text-primary">
-                      {question.answer}
-                    </span>
-                  </div>
-                  {question.explanation && (
-                    <div className="pt-2 text-sm">
-                      <span className="font-semibold">Explanation: </span>
-                      <span className="font-mono">
-                        {parseTextWithCode(question.explanation)}
-                      </span>
-                    </div>
-                  )}
-                  {question.linkUrl && (
-                    <p className="pt-2 text-sm">
-                      <span className="font-semibold">Source: </span>
-                      <a
-                        href={question.linkUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-primary underline break-all"
-                      >
-                        {question.linkUrl}
-                      </a>
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })
+          paginatedData.data.map((question, index) => (
+            <AdminQuestionListItem
+              key={question._id ?? question.id ?? index}
+              question={question}
+              displayNumber={
+                question.number && question.number > 0
+                  ? `${question.number}.`
+                  : `${(currentPage - 1) * 10 + index + 1}.`
+              }
+              onEdit={onEdit}
+              onDelete={onDelete}
+            />
+          ))
         )}
       </div>
 

@@ -58,55 +58,55 @@ export function QuestionCard({ question }: QuestionCardProps) {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          {question.answerType === "string" ? (
-            <div className="rounded-md px-4 py-2 text-sm font-mono bg-muted">
-              <strong>Answer:</strong> {parseTextWithCode(question.answer)}
-            </div>
-          ) : (
-            question.options?.map((option, idx) => (
-              <div
-                key={`${idx}-${option.substring(0, 20)}`}
-                className={`rounded-md p-2 text-sm font-mono transition-colors ${
-                  showAnswer && correctAnswerIndices.includes(idx)
-                    ? "bg-primary/10 border border-primary text-primary"
-                    : "bg-muted"
-                }`}
-              >
-                <div className="flex items-center space-x-2">
-                  <span className="font-semibold">
-                    {String.fromCharCode(65 + idx)}.
-                  </span>
-                  {isImageOption(option) ? (
-                    <img
-                      src={option.trim()}
-                      alt={`Option ${String.fromCharCode(65 + idx)}`}
-                      className="h-24 w-auto max-w-full object-cover rounded border"
-                      onError={(e) => {
-                        console.error(
-                          "Image failed to load in card:",
-                          option.substring(0, 50) + "...",
-                        );
-                        e.currentTarget.style.display = "none";
-                      }}
-                    />
-                  ) : (
-                    <span className="flex-1">{option}</span>
-                  )}
+          {question.answerType === "string"
+            ? null
+            : question.options?.map((option, idx) => (
+                <div
+                  key={`${idx}-${option.substring(0, 20)}`}
+                  className={`rounded-md p-2 text-sm font-mono transition-colors ${
+                    showAnswer && correctAnswerIndices.includes(idx)
+                      ? "bg-primary/10 border border-primary text-primary"
+                      : "bg-muted"
+                  }`}
+                >
+                  <div className="flex items-center space-x-2">
+                    <span className="font-semibold">
+                      {String.fromCharCode(65 + idx)}.
+                    </span>
+                    {isImageOption(option) ? (
+                      <img
+                        src={option.trim()}
+                        alt={`Option ${String.fromCharCode(65 + idx)}`}
+                        className="h-24 w-auto max-w-full object-cover rounded border"
+                        onError={(e) => {
+                          console.error(
+                            "Image failed to load in card:",
+                            option.substring(0, 50) + "...",
+                          );
+                          e.currentTarget.style.display = "none";
+                        }}
+                      />
+                    ) : (
+                      <span className="flex-1">{option}</span>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))
-          )}
+              ))}
         </div>
 
-        {question.answerType !== "string" && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowAnswer(!showAnswer)}
-            className="justify-between"
-          >
-            <span>{showAnswer ? "Hide" : "Show"} Answer</span>
-          </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowAnswer(!showAnswer)}
+          className="justify-between"
+        >
+          <span>{showAnswer ? "Hide" : "Show"} Answer</span>
+        </Button>
+
+        {showAnswer && question.answerType === "string" && (
+          <div className="rounded-md px-4 py-2 text-sm font-mono bg-muted">
+            {parseTextWithCode(question.answer)}
+          </div>
         )}
 
         {showAnswer && question.explanation && (
