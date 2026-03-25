@@ -41,8 +41,7 @@ function AdminQuestionListItem({
       <CardHeader>
         <CardTitle className="text-base font-semibold leading-relaxed flex items-start justify-between">
           <span>
-            {displayNumber}
-            {parseTextWithCode(question.question)}
+            {displayNumber} {parseTextWithCode(question.question)}
           </span>
           <div className="flex gap-2 ml-4">
             <Button
@@ -98,15 +97,20 @@ function AdminQuestionListItem({
                     : "bg-muted"
                 }`}
               >
-                {isImage ? (
-                  <img
-                    src={value}
-                    alt={`Option ${String.fromCharCode(65 + idx)}`}
-                    className="h-24 w-auto max-w-full object-cover rounded border"
-                  />
-                ) : (
-                  parseTextWithCode(option)
-                )}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono font-semibold">
+                    {String.fromCharCode(65 + idx)}.
+                  </span>
+                  {isImage ? (
+                    <img
+                      src={value}
+                      alt={`Option ${String.fromCharCode(65 + idx)}`}
+                      className="h-24 w-auto max-w-full object-cover rounded border"
+                    />
+                  ) : (
+                    <span className="flex-1">{parseTextWithCode(option)}</span>
+                  )}
+                </div>
               </div>
             );
           })}
