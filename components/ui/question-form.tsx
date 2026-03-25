@@ -427,12 +427,15 @@ export function QuestionForm({
                       });
                     }
                   }}
-                  className={`h-10 w-10 rounded-md border flex items-center justify-center ${
+                  className={`h-10 w-14 rounded-md border flex items-center justify-between px-2 ${
                     formData.answer?.includes(String.fromCharCode(65 + idx))
                       ? "text-primary-foreground"
                       : "border-input"
                   }`}
                 >
+                  <span className="text-xs font-mono font-semibold">
+                    {String.fromCharCode(65 + idx)}
+                  </span>
                   <CheckIcon
                     className={`h-5 w-5 ${
                       formData.answer?.includes(String.fromCharCode(65 + idx))
