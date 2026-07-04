@@ -30,7 +30,7 @@ export function ExamTypeSelector({
         <Button
           variant="outline"
           size="sm"
-          className="w-[160px] justify-start text-left"
+          className="w-[160px] justify-start text-left transition-colors hover:bg-accent hover:text-accent-foreground"
         >
           <Menu className="h-4 w-4 mr-2" />
           {selectedExam?.displayName || "Select Exam Type"}
