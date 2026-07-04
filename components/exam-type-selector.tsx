@@ -1,20 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Menu } from "lucide-react";
-import type { ExamType } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import type { ExamType } from "@/lib/types"; // Assuming this file exists and defines ExamType
 
 interface ExamTypeSelectorProps {
   examTypes: ExamType[];
   selectedExamType: string;
-  onExamTypeChange: (examType: string) => void;
+  onExamTypeChange: (examTypeSlug: string) => void;
 }
 
 export function ExamTypeSelector({
@@ -22,31 +15,26 @@ export function ExamTypeSelector({
   selectedExamType,
   onExamTypeChange,
 }: ExamTypeSelectorProps) {
-  const selectedExam = examTypes.find((exam) => exam.name === selectedExamType);
-
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-[160px] justify-start text-left"
+    <nav className="flex items-center space-x-2">
+      {examTypes.map((type) => (
+        <button
+          key={type.id} // Assuming ExamType has an 'id'
+          type="button"
+          onClick={() => onExamTypeChange(type.slug)} // Assuming ExamType has a 'slug'
+          className={cn(
+            "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors cursor-pointer",
+            "h-8 px-3 py-2", // Matches plan's padding and a common small button height
+            "outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+            "disabled:pointer-events-none disabled:opacity-50",
+            selectedExamType === type.slug
+              ? "text-primary bg-accent" // Active state
+              : "text-muted-foreground hover:text-foreground hover:bg-accent/50", // Inactive state with hover
+          )}
         >
-          <Menu className="h-4 w-4 mr-2" />
-          {selectedExam?.displayName || "Select Exam Type"}
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-[160px]">
-        {examTypes.map((examType) => (
-          <DropdownMenuItem
-            key={examType.id}
-            onClick={() => onExamTypeChange(examType.name)}
-            className={selectedExamType === examType.name ? "bg-accent" : ""}
-          >
-            {examType.displayName}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+          {type.name} {/* Assuming ExamType has a 'name' */}
+        </button>
+      ))}
+    </nav>
   );
 }
