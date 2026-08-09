@@ -17,33 +17,43 @@ interface ExamTypeSelectorProps {
   onExamTypeChange: (examType: string) => void;
 }
 
-export function ExamTypeSelector({
-  examTypes,
-  selectedExamType,
-  onExamTypeChange,
-}: ExamTypeSelectorProps) {
-  const selectedExam = examTypes.find((exam) => exam.name === selectedExamType);
+import { useState } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+
+interface ExamTypeSelectorProps {
+  onSelect: (type: string) => void;
+}
+
+export function ExamTypeSelector({ onSelect }: ExamTypeSelectorProps) {
+  const [selected, setSelected] = useState("MCQ");
+  const examTypes = ["MCQ", "Theory", "Practical"];
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
-          size="sm"
-          className="w-[160px] justify-start text-left"
+          className="hover:bg-gray-200 hover:text-gray-900 transition-colors cursor-pointer"
         >
-          <Menu className="h-4 w-4 mr-2" />
-          {selectedExam?.displayName || "Select Exam Type"}
+          {selected}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-[160px]">
-        {examTypes.map((examType) => (
+      <DropdownMenuContent>
+        {examTypes.map((type) => (
           <DropdownMenuItem
-            key={examType.id}
-            onClick={() => onExamTypeChange(examType.name)}
-            className={selectedExamType === examType.name ? "bg-accent" : ""}
+            key={type}
+            onSelect={() => {
+              setSelected(type);
+              onSelect(type);
+            }}
           >
-            {examType.displayName}
+            {type}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
