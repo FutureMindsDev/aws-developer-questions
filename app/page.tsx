@@ -14,6 +14,22 @@ import type { Question, PaginatedResponse, ExamType } from "@/lib/types";
 import { toast } from "@/hooks/use-toast";
 import { PublicSubmitModal } from "@/components/home/public-submit-modal";
 
+"use client";
+
+import * as React from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { QuestionCard } from "@/components/question-card";
+import { Pagination } from "@/components/pagination";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { ExamTypeSelector } from "@/components/exam-type-selector";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useAuth } from "@/components/auth-provider";
+import { LogOut, Search, Shield } from "lucide-react";
+import type { Question, PaginatedResponse, ExamType } from "@/lib/types";
+import { toast } from "@/hooks/use-toast";
+import { PublicSubmitModal } from "@/components/home/public-submit-modal";
+
 export default function HomePage() {
   const [paginatedData, setPaginatedData] = React.useState<
     PaginatedResponse<Question>
@@ -57,7 +73,7 @@ export default function HomePage() {
     linkUrl: "",
   });
   const [submitting, setSubmitting] = React.useState(false);
-  const { isAdmin, logout } = useAuth();
+  const { isAuthenticated, isAdmin, logout } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -122,6 +138,12 @@ export default function HomePage() {
       localStorage.setItem("selectedExamType", finalExamType);
     }
   }, [searchParams, fetchExamTypes]);
+
+  React.useEffect(() => {
+    if (!isAuthenticated) {
+      router.replace("/onboarding");
+    }
+  }, [isAuthenticated, router]);
 
   React.useEffect(() => {
     const timer = setTimeout(() => {
@@ -267,7 +289,12 @@ export default function HomePage() {
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            {isAdmin && (
+            {!isAuthenticated && (
+              <Button variant="default" size="sm" onClick={() => router.push("/login?redirect=/")}>
+                Sign in
+              </Button>
+            )}
+            {isAuthenticated && isAdmin && (
               <Button variant="ghost" size="sm" onClick={logout}>
                 <LogOut className="h-4 w-4" />
               </Button>
