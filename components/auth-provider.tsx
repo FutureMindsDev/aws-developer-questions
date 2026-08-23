@@ -15,67 +15,78 @@ type AuthContextType = {
 const AuthContext = React.createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = React.useState(false);
-  const [isAdmin, setIsAdmin] = React.useState(false);
-  const [password, setPassword] = React.useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const pathname = usePathname();
 
-  React.useEffect(() => {
-    const auth = sessionStorage.getItem("auth");
-    if (!auth) return;
-
-    try {
-      const { isAdmin, password } = JSON.parse(auth);
-      if (isAdmin && password) {
-        setIsAuthenticated(true);
-        setIsAdmin(true);
-        setPassword(password);
-      } else {
-        sessionStorage.removeItem("auth");
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch {
+        localStorage.removeItem("user");
       }
-    } catch {
-      sessionStorage.removeItem("auth");
     }
+    setLoading(false);
   }, []);
 
-  const login = (inputPassword: string) => {
-    const adminPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "123456";
+  useEffect(() => {
+    if (loading) return;
 
-    if (inputPassword === adminPassword) {
-      setIsAuthenticated(true);
-      setIsAdmin(true);
-      setPassword(inputPassword);
-      sessionStorage.setItem(
-        "auth",
-        JSON.stringify({ isAdmin: true, password: inputPassword }),
-      );
-      router.push("/admin");
-      return true;
+    const isLogin = pathname === "/login" || pathname.startsWith("/login/");
+    const isOnboarding = pathname === "/onboarding" || pathname.startsWith("/onboarding/");
+    const isPublic = isLogin || isOnboarding;
+
+    if (!user && !isPublic) {
+      const next = pathname && pathname !== "/" ? `?next=${encodeURIComponent(pathname)}` : "";
+      router.replace(`/onboarding${next}`);
+      return;
     }
 
-    toast({
-      title: "Invalid admin password",
-      variant: "destructive",
-    });
-    setIsAuthenticated(false);
-    setIsAdmin(false);
-    setPassword(null);
-    sessionStorage.removeItem("auth");
-    return false;
+    if (user && (isLogin || isOnboarding)) {
+      router.replace("/");
+    }
+  }, [user, loading, pathname, router]);
+
+  const login = (emailOrUser: any, password?: string): boolean => {
+    let email = "";
+    let name = "";
+
+    if (typeof emailOrUser === "string") {
+      email = emailOrUser.trim();
+      name = email.split("@")[0] || "User";
+    } else if (emailOrUser && typeof emailOrUser === "object") {
+      email = emailOrUser.email?.trim?.() ?? "";
+      name = emailOrUser.name ?? (email ? email.split("@")[0] : "User");
+    }
+
+    if (!email) return false;
+
+    const nextUser =
+      emailOrUser && typeof emailOrUser === "object"
+        ? { ...emailOrUser, email, name }
+        : { email, name };
+
+    localStorage.setItem("user", JSON.stringify(nextUser));
+    setUser(nextUser);
+
+    const searchParams = new URLSearchParams(window.location.search);
+    const next = searchParams.get("next");
+    router.push(next || "/");
+
+    return true;
   };
 
   const logout = () => {
-    setIsAuthenticated(false);
-    setIsAdmin(false);
-    setPassword(null);
-    sessionStorage.removeItem("auth");
-    router.push("/");
+    localStorage.removeItem("user");
+    setUser(null);
+    router.push("/onboarding");
   };
 
   return (
-    <AuthContext.Provider
-      value={{ isAuthenticated, isAdmin, password, login, logout }}
-    >
+    <AuthContext.Provider value={{ user, login, logout, loading } as any}>
       {children}
     </AuthContext.Provider>
   );
