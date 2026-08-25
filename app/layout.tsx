@@ -1,37 +1,21 @@
-import type React from "react";
 import type { Metadata } from "next";
-import { GeistSans } from "geist/font/sans";
-import { GeistMono } from "geist/font/mono";
-import { Analytics } from "@vercel/analytics/next";
+import type { ReactNode } from "react";
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/components/auth-provider";
-import { Toaster } from "@/components/ui/toaster";
-import { Suspense } from "react";
+import { RouteGuard } from "@/components/route-guard";
 
 export const metadata: Metadata = {
-  title: "AWS Developer Q&A",
-  description: "AWS Developer Certification Practice Questions",
-  generator: "v0.app",
+  title: "Q&A Community",
+  description: "Ask questions, share answers, and learn together.",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className="dark">
-      <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
-        <ThemeProvider defaultTheme="dark">
-          <AuthProvider>
-            <Suspense fallback={null}>
-              {children}
-              <Toaster />
-            </Suspense>
-          </AuthProvider>
-        </ThemeProvider>
-        <Analytics />
+    <html lang="en">
+      <body>
+        <AuthProvider>
+          <RouteGuard>{children}</RouteGuard>
+        </AuthProvider>
       </body>
     </html>
   );
