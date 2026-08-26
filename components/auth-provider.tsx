@@ -4,11 +4,11 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "@/hooks/use-toast";
 
-type AuthContextType = {
+export type AuthContextType = {
   isAuthenticated: boolean;
   isAdmin: boolean;
-  password: string | null;
-  login: (password: string) => boolean;
+  isLoading: boolean;
+  login: (password: string, redirectTo?: string) => Promise<boolean>;
   logout: () => void;
 };
 
@@ -17,64 +17,64 @@ const AuthContext = React.createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = React.useState(false);
   const [isAdmin, setIsAdmin] = React.useState(false);
-  const [password, setPassword] = React.useState<string | null>(null);
+  const [isLoading, setIsLoading] = React.useState(true);
   const router = useRouter();
 
   React.useEffect(() => {
-    const auth = sessionStorage.getItem("auth");
-    if (!auth) return;
-
     try {
-      const { isAdmin, password } = JSON.parse(auth);
-      if (isAdmin && password) {
-        setIsAuthenticated(true);
-        setIsAdmin(true);
-        setPassword(password);
+      const auth = sessionStorage.getItem("auth");
+      if (!auth) {
+        setIsAuthenticated(false);
+        setIsAdmin(false);
       } else {
-        sessionStorage.removeItem("auth");
+        const parsed = JSON.parse(auth);
+        setIsAuthenticated(parsed?.isAuthenticated === true);
+        setIsAdmin(parsed?.isAdmin === true);
       }
     } catch {
-      sessionStorage.removeItem("auth");
+      setIsAuthenticated(false);
+      setIsAdmin(false);
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
-  const login = (inputPassword: string) => {
-    const adminPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "123456";
+  const login = React.useCallback(
+    async (password: string, redirectTo?: string) => {
+      try {
+        const res = await fetch("/api/auth", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ password }),
+        });
+        if (!res.ok) return false;
+        const data = await res.json();
+        const isAdminUser = data.isAdmin === true;
+        setIsAuthenticated(true);
+        setIsAdmin(isAdminUser);
+        sessionStorage.setItem(
+          "auth",
+          JSON.stringify({ isAuthenticated: true, isAdmin: isAdminUser })
+        );
+        router.push(redirectTo || "/");
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [router]
+  );
 
-    if (inputPassword === adminPassword) {
-      setIsAuthenticated(true);
-      setIsAdmin(true);
-      setPassword(inputPassword);
-      sessionStorage.setItem(
-        "auth",
-        JSON.stringify({ isAdmin: true, password: inputPassword }),
-      );
-      router.push("/admin");
-      return true;
-    }
-
-    toast({
-      title: "Invalid admin password",
-      variant: "destructive",
-    });
+  const logout = React.useCallback(() => {
+    sessionStorage.removeItem("auth");
     setIsAuthenticated(false);
     setIsAdmin(false);
-    setPassword(null);
-    sessionStorage.removeItem("auth");
-    return false;
-  };
-
-  const logout = () => {
-    setIsAuthenticated(false);
-    setIsAdmin(false);
-    setPassword(null);
-    sessionStorage.removeItem("auth");
-    router.push("/");
-  };
+    router.push("/onboarding");
+  }, [router]);
 
   return (
     <AuthContext.Provider
-      value={{ isAuthenticated, isAdmin, password, login, logout }}
+      value={{ isAuthenticated, isAdmin, isLoading, login, logout }}
     >
       {children}
     </AuthContext.Provider>
