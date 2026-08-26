@@ -17,561 +17,75 @@ import { AdminQuestionList } from "@/components/admin/admin-question-list";
 import { PendingApprovalsList } from "@/components/admin/pending-approvals-list";
 
 export default function AdminPage() {
-  const [paginatedData, setPaginatedData] = React.useState<
-    PaginatedResponse<Question>
-  >({
-    data: [],
-    total: 0,
-    page: 1,
-    limit: 10,
-    totalPages: 0,
-  });
-  const [examTypes, setExamTypes] = React.useState<ExamType[]>([]);
-  const [examTypesLoading, setExamTypesLoading] = React.useState(true);
-  const [selectedExamType, setSelectedExamType] =
-    React.useState<string>("aws-developer");
-  const [currentPage, setCurrentPage] = React.useState(1);
-  const [pendingData, setPendingData] = React.useState<
-    PaginatedResponse<Question>
-  >({
-    data: [],
-    total: 0,
-    page: 1,
-    limit: 10,
-    totalPages: 0,
-  });
-  const [pendingPage, setPendingPage] = React.useState(1);
-  const [editingId, setEditingId] = React.useState<string | null>(null);
-  const [showCodeHelper, setShowCodeHelper] = React.useState(false);
-  const [formData, setFormData] = React.useState<QuestionFormData>({
-    question: "",
-    questionImages: [],
-    options: ["", "", "", "", ""],
-    answer: "",
-    explanation: "",
-    number: "",
-    linkUrl: "",
-    examType: "aws-developer",
-    answerType: "single_choice",
-    answerSubType: "string",
-  });
-  const [errors, setErrors] = React.useState({
-    question: "",
-    options: ["", "", "", "", ""],
-    answer: "",
-    number: "",
-    linkUrl: "",
-  });
-  const [activeTab, setActiveTab] = React.useState<
-    "dashboard" | "create" | "approvals"
-  >("dashboard");
-  const { isAdmin, logout, password, login } = useAuth();
-  const [loginPassword, setLoginPassword] = React.useState("");
-  const [searchQuery, setSearchQuery] = React.useState("");
-  const [isLoading, setIsLoading] = React.useState(false);
+  const { isAdmin, isLoading } = useAuth();
+  const router = useRouter();
+  const [questions, setQuestions] = React.useState<Question[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState("");
 
-  const fetchQuestions = React.useCallback(
-    async (page: number) => {
-      setIsLoading(true);
-      try {
-        const params = new URLSearchParams({
-          page: page.toString(),
-          limit: "10",
-          scope: "public",
-          ...(searchQuery && { search: searchQuery }),
-          examType: selectedExamType,
-        });
-        const response = await fetch(`/api/questions?${params}`);
-        if (response.ok) {
-          const data = await response.json();
-          setPaginatedData(data);
-        }
-      } catch (error) {
-        console.error("[v0] Error fetching questions:", error);
-        toast({ title: "Failed to fetch questions", variant: "destructive" });
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [searchQuery, selectedExamType],
-  );
-
-  const fetchPendingQuestions = React.useCallback(async (page: number) => {
-    setIsLoading(true);
-    try {
-      const response = await fetch(
-        `/api/questions?page=${page}&limit=10&scope=pending`,
-      );
-      if (response.ok) {
-        const data = await response.json();
-        setPendingData(data);
-      }
-    } catch (error) {
-      console.error("[v0] Error fetching pending questions:", error);
-      toast({
-        title: "Failed to fetch pending questions",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+  React.useEffect(() => {
+    if (!isLoading && !isAdmin) {
+      router.replace("/onboarding");
     }
-  }, []);
+  }, [isLoading, isAdmin, router]);
 
-  const fetchExamTypes = React.useCallback(async () => {
-    setExamTypesLoading(true);
+  const fetchQuestions = React.useCallback(async () => {
+    setLoading(true);
+    setError("");
     try {
-      const response = await fetch("/api/exam-types");
-      if (response.ok) {
-        const data = await response.json();
-        setExamTypes(data);
-      }
-    } catch (error) {
-      console.error("[v0] Error fetching exam types:", error);
-      toast({ title: "Failed to fetch exam types", variant: "destructive" });
+      const res = await fetch("/api/questions?limit=50&scope=all");
+      if (!res.ok) throw new Error("Failed to fetch questions");
+      const data = await res.json();
+      setQuestions(data.data ?? []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to fetch questions");
     } finally {
-      setExamTypesLoading(false);
+      setLoading(false);
     }
   }, []);
 
   React.useEffect(() => {
-    if (!isAdmin) {
-      return;
+    if (!isLoading && isAdmin) {
+      fetchQuestions();
     }
-    fetchQuestions(currentPage);
-    fetchExamTypes();
-  }, [isAdmin, currentPage, fetchQuestions, fetchExamTypes]);
+  }, [isLoading, isAdmin, fetchQuestions]);
 
-  React.useEffect(() => {
-    // Refetch questions when exam type changes
-    if (isAdmin && selectedExamType) {
-      setCurrentPage(1); // Reset to page 1
-      fetchQuestions(1);
-    }
-  }, [selectedExamType, fetchQuestions, isAdmin]);
-
-  React.useEffect(() => {
-    if (!isAdmin || activeTab !== "approvals") {
-      return;
-    }
-    fetchPendingQuestions(pendingPage);
-  }, [isAdmin, activeTab, pendingPage, fetchPendingQuestions]);
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const handlePendingPageChange = (page: number) => {
-    setPendingPage(page);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // Validation
-    const newErrors = {
-      question: "",
-      options: ["", "", "", "", ""],
-      answer: "",
-      number: "",
-      linkUrl: "",
-    };
-
-    let hasErrors = false;
-
-    // Validate question
-    if (!formData.question.trim()) {
-      newErrors.question = "Question is required";
-      hasErrors = true;
-    }
-
-    // Validate answer
-    if (!formData.answer.trim()) {
-      newErrors.answer = "Answer is required";
-      hasErrors = true;
-    }
-
-    // Validate number (should be a valid number or empty)
-    if (
-      formData.number !== "" &&
-      (isNaN(Number(formData.number)) || Number(formData.number) < 0)
-    ) {
-      newErrors.number = "Number must be a positive number or empty";
-      hasErrors = true;
-    }
-
-    setErrors(newErrors);
-
-    if (hasErrors) {
-      toast({ title: "Please fix the errors below", variant: "destructive" });
-      return;
-    }
-
-    try {
-      if (editingId) {
-        const payload: Record<string, unknown> = {
-          ...formData,
-          number: formData.number === "" ? undefined : Number(formData.number),
-          adminPassword: password,
-        };
-
-        if (formData.answerType === "single_choice") {
-          payload.options = (formData.options || []).filter(
-            (option) => option.trim() !== "",
-          );
-        } else {
-          delete payload.options;
-          delete payload.answerSubType;
-        }
-
-        const response = await fetch(`/api/questions/${editingId}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-
-        if (!response.ok) throw new Error("Failed to update question");
-        toast({ title: "Question updated successfully" });
-        setEditingId(null);
-      } else {
-        const payload: Record<string, unknown> = {
-          ...formData,
-          number: formData.number === "" ? undefined : Number(formData.number),
-          adminPassword: password,
-        };
-
-        if (formData.answerType === "single_choice") {
-          payload.options = (formData.options || []).filter(
-            (option) => option.trim() !== "",
-          );
-        } else {
-          delete payload.options;
-          delete payload.answerSubType;
-        }
-
-        const response = await fetch("/api/questions", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-
-        if (!response.ok) throw new Error("Failed to add question");
-        toast({ title: "Question added successfully" });
-      }
-
-      setFormData({
-        question: "",
-        questionImages: [],
-        options: ["", "", "", "", ""],
-        answer: "",
-        answerType: "single_choice",
-        answerSubType: "string",
-        explanation: "",
-        number: "",
-        linkUrl: "",
-        examType: "aws-developer",
-      });
-      setErrors({
-        question: "",
-        options: ["", "", "", "", ""],
-        answer: "",
-        number: "",
-        linkUrl: "",
-      });
-      fetchQuestions(currentPage);
-    } catch (error) {
-      console.error("[v0] Error submitting question:", error);
-      toast({ title: "Failed to save question", variant: "destructive" });
-    }
-  };
-
-  const handleEdit = (question: Question) => {
-    setActiveTab("create");
-    setEditingId(question.id);
-    setFormData({
-      question: question.question,
-      questionImages: question.questionImages || [],
-      options: question.options || ["", "", "", "", ""],
-      answer: question.answer,
-      answerType: question.answerType || "single_choice",
-      answerSubType: question.answerSubType,
-      explanation: question.explanation || "",
-      number: question.number?.toString() || "",
-      linkUrl: question.linkUrl || "",
-      examType: question.examType || "aws-developer",
-    });
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const handleDelete = async (id: string) => {
-    if (confirm("Are you sure you want to delete this question?")) {
-      try {
-        const response = await fetch(`/api/questions/${id}`, {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ adminPassword: password }),
-        });
-
-        if (!response.ok) throw new Error("Failed to delete question");
-        toast({ title: "Question deleted successfully" });
-        fetchQuestions(currentPage);
-      } catch (error) {
-        console.error("[v0] Error deleting question:", error);
-        toast({ title: "Failed to delete question", variant: "destructive" });
-      }
-    }
-  };
-
-  const handleApprovePending = async (id: string) => {
-    try {
-      const response = await fetch(`/api/questions/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          approved: true,
-          adminPassword: password,
-        }),
-      });
-
-      if (!response.ok) throw new Error("Failed to approve question");
-      toast({ title: "Question approved" });
-      fetchPendingQuestions(pendingPage);
-      fetchQuestions(currentPage);
-    } catch (error) {
-      console.error("[v0] Error approving question:", error);
-      toast({ title: "Failed to approve question", variant: "destructive" });
-    }
-  };
-
-  const handleDisapprovePending = async (id: string) => {
-    if (
-      !confirm(
-        "Are you sure you want to disapprove this question? It will be deleted.",
-      )
-    ) {
-      return;
-    }
-
-    try {
-      const response = await fetch(`/api/questions/${id}`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ adminPassword: password }),
-      });
-
-      if (!response.ok) throw new Error("Failed to disapprove question");
-      toast({ title: "Question disapproved and deleted" });
-      fetchPendingQuestions(pendingPage);
-    } catch (error) {
-      console.error("[v0] Error disapproving question:", error);
-      toast({
-        title: "Failed to disapprove question",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleFormChange = (data: QuestionFormData) => {
-    setFormData({
-      ...data,
-      questionImages: data.questionImages || [],
-      options: data.options || [],
-      examType: data.examType || "aws-developer",
-    });
-  };
-
-  const handleCancel = () => {
-    setEditingId(null);
-    setShowCodeHelper(false);
-    setFormData({
-      question: "",
-      questionImages: [],
-      options: ["", "", "", "", ""],
-      answer: "",
-      answerType: "single_choice",
-      answerSubType: "string",
-      explanation: "",
-      number: "",
-      linkUrl: "",
-      examType: "aws-developer",
-    });
-    setErrors({
-      question: "",
-      options: ["", "", "", "", ""],
-      answer: "",
-      number: "",
-      linkUrl: "",
-    });
-  };
-
-  if (!isAdmin) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="absolute top-4 right-4">
-          <ThemeToggle />
-        </div>
-
-        <Card className="w-full max-w-md">
-          <CardHeader className="space-y-1">
-            <div className="flex items-center justify-center mb-4">
-              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <Lock className="h-6 w-6 text-primary" />
-              </div>
-            </div>
-            <CardTitle className="text-2xl text-center">Admin Access</CardTitle>
-            <p className="text-center text-muted-foreground">
-              Enter the admin password to manage the question bank.
-            </p>
-          </CardHeader>
-          <CardContent>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                login(loginPassword);
-              }}
-              className="space-y-4"
-            >
-              <div className="space-y-2">
-                <Label htmlFor="admin-password">Password</Label>
-                <Input
-                  id="admin-password"
-                  type="password"
-                  placeholder="Enter admin password"
-                  value={loginPassword}
-                  onChange={(e) => setLoginPassword(e.target.value)}
-                  maxLength={6}
-                  className="font-mono"
-                  required
-                />
-              </div>
-              <Button type="submit" className="w-full">
-                Sign In
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  if (isLoading || !isAdmin) return null;
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 border-b border-border bg-card">
-        <div className="container mx-auto flex h-14 items-center justify-between px-4">
-          <div className="flex items-center gap-4">
-            {!examTypesLoading && examTypes.length > 0 && (
-              <ExamTypeSelector
-                examTypes={examTypes}
-                selectedExamType={selectedExamType}
-                onExamTypeChange={setSelectedExamType}
-              />
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <Button variant="ghost" size="sm" onClick={logout}>
-              <LogOut className="h-4 w-4 mr-2" />
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="mb-6 flex items-center justify-between border-b pb-2">
+    <main className="min-h-screen bg-gray-50">
+      <div className="mx-auto max-w-4xl px-4 py-8">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
           <button
-            type="button"
-            onClick={() => setActiveTab("dashboard")}
-            className={`flex-1 border-b-2 pb-1 text-center text-sm font-medium transition-colors ${
-              activeTab === "dashboard"
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
+            onClick={() => router.push("/")}
+            className="text-sm text-blue-600 hover:underline"
           >
-            DASHBOARD
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("create")}
-            className={`flex-1 border-b-2 pb-1 text-center text-sm font-medium transition-colors ${
-              activeTab === "create"
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            CREATE NEW QUESTION
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("approvals")}
-            className={`flex-1 border-b-2 pb-1 text-center text-sm font-medium transition-colors ${
-              activeTab === "approvals"
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            POSTS APPROVAL
+            Back to questions
           </button>
         </div>
 
-        {activeTab === "dashboard" && (
-          <AdminQuestionList
-            paginatedData={paginatedData}
-            currentPage={currentPage}
-            searchQuery={searchQuery}
-            isLoading={isLoading}
-            onSearchChange={setSearchQuery}
-            onPageChange={handlePageChange}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-          />
-        )}
-
-        {activeTab === "create" && (
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>{editingId ? "Edit Question" : "Add New Question"}</span>
-                {editingId && (
-                  <Button variant="ghost" size="sm" onClick={handleCancel}>
-                    <X className="h-4 w-4 mr-2" />
-                    Cancel
-                  </Button>
-                )}
-              </CardTitle>
-              <div className="mt-2 p-3 bg-muted rounded-md">
-                <p className="text-sm text-muted-foreground">
-                  💡 <strong>Code formatting:</strong> Use{" "}
-                  <code className="bg-background px-1 py-0.5 rounded text-xs">
-                    &lt;code&gt;your-code-here&lt;/code&gt;
-                  </code>{" "}
-                  tags to format code snippets in questions and explanations.
-                </p>
+        {error ? <p className="mt-4 text-red-600">{error}</p> : null}
+        {loading ? (
+          <p className="mt-6 text-gray-500">Loading questions...</p>
+        ) : (
+          <div className="mt-6 space-y-4">
+            {questions.map((q) => (
+              <div key={q._id} className="rounded-xl border border-gray-200 bg-white p-5">
+                <div className="flex items-center justify-between text-sm text-gray-500">
+                  <span>Q{q.number}</span>
+                  <span>{q.examType}</span>
+                </div>
+                <h2 className="mt-1 text-lg font-medium text-gray-900">{q.question}</h2>
+                <p className="mt-2 text-sm text-gray-700">{q.answer}</p>
               </div>
-            </CardHeader>
-            <CardContent>
-              <QuestionForm
-                formData={formData}
-                errors={errors}
-                onSubmit={handleSubmit}
-                onChange={handleFormChange}
-                examTypes={examTypes}
-                submitLabel={editingId ? "Update Question" : "Add Question"}
-              />
-            </CardContent>
-          </Card>
+            ))}
+            {questions.length === 0 && !loading ? (
+              <p className="text-gray-500">No questions found.</p>
+            ) : null}
+          </div>
         )}
-
-        {activeTab === "approvals" && (
-          <PendingApprovalsList
-            pendingData={pendingData}
-            pendingPage={pendingPage}
-            onPendingPageChange={handlePendingPageChange}
-            onApprove={handleApprovePending}
-            onDisapprove={handleDisapprovePending}
-          />
-        )}
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }
