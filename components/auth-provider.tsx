@@ -10,6 +10,7 @@ type AuthContextType = {
   password: string | null;
   login: (password: string) => boolean;
   logout: () => void;
+  authLoading: boolean;
 };
 
 const AuthContext = React.createContext<AuthContextType | undefined>(undefined);
@@ -18,11 +19,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = React.useState(false);
   const [isAdmin, setIsAdmin] = React.useState(false);
   const [password, setPassword] = React.useState<string | null>(null);
+  const [authLoading, setAuthLoading] = React.useState(true);
   const router = useRouter();
 
   React.useEffect(() => {
     const auth = sessionStorage.getItem("auth");
-    if (!auth) return;
+    if (!auth) {
+      setAuthLoading(false);
+      return;
+    }
 
     try {
       const { isAdmin, password } = JSON.parse(auth);
@@ -35,6 +40,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } catch {
       sessionStorage.removeItem("auth");
+    } finally {
+      setAuthLoading(false);
     }
   }, []);
 
@@ -74,7 +81,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ isAuthenticated, isAdmin, password, login, logout }}
+      value={{
+        isAuthenticated,
+        isAdmin,
+        password,
+        login,
+        logout,
+        authLoading,
+      }}
     >
       {children}
     </AuthContext.Provider>

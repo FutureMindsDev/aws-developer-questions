@@ -8,11 +8,15 @@ import { parseTextWithCode } from "@/lib/utils";
 
 interface QuestionCardProps {
   question: Question;
+  showAnswerInitially?: boolean;
   // index: number
 }
 
-export function QuestionCard({ question }: QuestionCardProps) {
-  const [showAnswer, setShowAnswer] = React.useState(false);
+export function QuestionCard({
+  question,
+  showAnswerInitially = false,
+}: QuestionCardProps) {
+  const [showAnswer, setShowAnswer] = React.useState(showAnswerInitially);
 
   // Convert answer string to array of indices (e.g., "A, C" -> [0, 2])
   const correctAnswerIndices = React.useMemo(() => {

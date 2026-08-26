@@ -57,7 +57,7 @@ export default function HomePage() {
     linkUrl: "",
   });
   const [submitting, setSubmitting] = React.useState(false);
-  const { isAdmin, logout } = useAuth();
+  const { isAdmin, logout, isAuthenticated, authLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -122,6 +122,13 @@ export default function HomePage() {
       localStorage.setItem("selectedExamType", finalExamType);
     }
   }, [searchParams, fetchExamTypes]);
+
+  React.useEffect(() => {
+    if (authLoading) return;
+    if (!isAuthenticated) {
+      router.replace("/onboarding");
+    }
+  }, [authLoading, isAuthenticated, router]);
 
   React.useEffect(() => {
     const timer = setTimeout(() => {
@@ -251,6 +258,8 @@ export default function HomePage() {
       setSubmitting(false);
     }
   };
+
+  if (authLoading) return null;
 
   return (
     <div className="min-h-screen bg-background">
