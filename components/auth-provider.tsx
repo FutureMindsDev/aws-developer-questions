@@ -4,8 +4,16 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "@/hooks/use-toast";
 
+isAuthenticated: boolean;
+  isLoading: boolean;
+  isAdmin: boolean;
+  password: string | null;
+  login: (password: string) => boolean;
+  logout: () => void;
+
 type AuthContextType = {
   isAuthenticated: boolean;
+  isLoading: boolean;
   isAdmin: boolean;
   password: string | null;
   login: (password: string) => boolean;
@@ -18,11 +26,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = React.useState(false);
   const [isAdmin, setIsAdmin] = React.useState(false);
   const [password, setPassword] = React.useState<string | null>(null);
+  const [isLoading, setIsLoading] = React.useState(true);
   const router = useRouter();
 
   React.useEffect(() => {
     const auth = sessionStorage.getItem("auth");
-    if (!auth) return;
+    if (!auth) {
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const { isAdmin, password } = JSON.parse(auth);
@@ -36,6 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch {
       sessionStorage.removeItem("auth");
     }
+    setIsLoading(false);
   }, []);
 
   const login = (inputPassword: string) => {
@@ -74,7 +87,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ isAuthenticated, isAdmin, password, login, logout }}
+      value={{
+        isAuthenticated,
+        isLoading,
+        isAdmin,
+        password,
+        login,
+        logout,
+      }}
     >
       {children}
     </AuthContext.Provider>
