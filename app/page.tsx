@@ -57,7 +57,7 @@ export default function HomePage() {
     linkUrl: "",
   });
   const [submitting, setSubmitting] = React.useState(false);
-  const { isAdmin, logout } = useAuth();
+  const { isAdmin, logout, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -104,6 +104,12 @@ export default function HomePage() {
   React.useEffect(() => {
     fetchExamTypes();
   }, [fetchExamTypes]);
+
+  React.useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.replace("/onboarding");
+    }
+  }, [isLoading, isAuthenticated, router]);
 
   React.useEffect(() => {
     // Initialize from URL parameters or localStorage
@@ -251,6 +257,9 @@ export default function HomePage() {
       setSubmitting(false);
     }
   };
+
+  // Prevent a flash of the question browser before auth state is restored.
+  if (isLoading) return null;
 
   return (
     <div className="min-h-screen bg-background">
