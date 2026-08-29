@@ -2,14 +2,14 @@ import { type NextRequest, NextResponse } from "next/server";
 import { getDatabase } from "@/lib/mongodb";
 import type { Question } from "@/lib/types";
 
-export async function GET(request: NextRequest) {
-  try {
-    const searchParams = request.nextUrl.searchParams;
+try {
+    const MARKER_START const searchParams = request.nextUrl.searchParams; MARKER_END;
     const page = Number.parseInt(searchParams.get("page") || "1");
     const limit = Number.parseInt(searchParams.get("limit") || "10");
     const search = searchParams.get("search") || "";
     const scope = searchParams.get("scope") || "all";
     const examType = searchParams.get("examType") || "";
+    const sort = searchParams.get("sort") || "";
     const skip = (page - 1) * limit;
 
     const db = await getDatabase();
@@ -48,10 +48,13 @@ export async function GET(request: NextRequest) {
 
     const finalFilter = filters.length > 0 ? { $and: filters } : {};
 
+    const sortSpec: Record<string, 1 | -1> =
+      sort === "latest" ? { createdAt: -1 } : { number: -1, order: 1 };
+
     const questions = await db
       .collection<Question>("questions")
       .find(finalFilter)
-      .sort({ number: -1, order: 1 })
+      .sort(sortSpec)
       .skip(skip)
       .limit(limit)
       .toArray();
@@ -81,7 +84,6 @@ export async function GET(request: NextRequest) {
       { status: 500 },
     );
   }
-}
 
 export async function POST(request: NextRequest) {
   try {
