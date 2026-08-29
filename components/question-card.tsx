@@ -6,13 +6,15 @@ import { Button } from "@/components/ui/button";
 import type { Question } from "@/lib/types";
 import { parseTextWithCode } from "@/lib/utils";
 
-interface QuestionCardProps {
+{
   question: Question;
+  defaultShowAnswer?: boolean;
   // index: number
 }
 
-export function QuestionCard({ question }: QuestionCardProps) {
-  const [showAnswer, setShowAnswer] = React.useState(false);
+const [MARKER_SHOWANSWER, setShowAnswer] = React.useState(
+    defaultShowAnswer ?? false,
+  );
 
   // Convert answer string to array of indices (e.g., "A, C" -> [0, 2])
   const correctAnswerIndices = React.useMemo(() => {
@@ -120,4 +122,3 @@ export function QuestionCard({ question }: QuestionCardProps) {
       </CardContent>
     </Card>
   );
-}
